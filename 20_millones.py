@@ -1,11 +1,15 @@
-
+from helpers import timer
 cache = {}
 cache_hits = 0
 
 
-def binpower(base: int, e: int, mod: int) -> int:
+def potencia_por_cuadrados(base: int, e: int, mod: int) -> int:
     """
-    https://cp-algorithms.com/algebra/primality_tests.html
+        Calcula a^n en O(log n) multiplicaciones.
+
+        Referencias:
+        https://cp-algorithms.com/algebra/binary-exp.html
+        https://es.wikipedia.org/wiki/Exponenciaci%C3%B3n_binaria
     """
     result = 1
     base %= mod
@@ -18,11 +22,12 @@ def binpower(base: int, e: int, mod: int) -> int:
     return result
 
 
-def check_composite(num: int, a: int, d: int, s: int) -> bool:
+def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     """
-    https://cp-algorithms.com/algebra/primality_tests.html
+        Referencias:
+        https://cp-algorithms.com/algebra/primality_tests.html
     """
-    x = binpower(a, d, num)
+    x = potencia_por_cuadrados(a, d, num)
     if x == 1 or x == (num - 1):
         return False
     for _ in range(1, s):
@@ -35,7 +40,11 @@ def check_composite(num: int, a: int, d: int, s: int) -> bool:
 
 def miller_rabin_deterministico(num: int) -> bool:
     """
-    https://cp-algorithms.com/algebra/primality_tests.html
+        Versión determinística del algoritmo del test de primalidad de Miller-Rabin
+
+        Referencias:
+        https://cp-algorithms.com/algebra/primality_tests.html
+        https://es.wikipedia.org/wiki/Test_de_primalidad
     """
     if num < 2:
         return False
@@ -51,15 +60,18 @@ def miller_rabin_deterministico(num: int) -> bool:
     for i in base:
         if num == i:
             return True
-        if check_composite(num, i, d, r):
+        if es_compuesto(num, i, d, r):
             return False
 
     return True
 
-# @timer
+@timer
 def division_tentativa(num: int) -> list[int]:
     """
-    https://cp-algorithms.com/algebra/factorization.html
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
     """
 
     factores = []
@@ -79,9 +91,6 @@ def division_tentativa(num: int) -> list[int]:
 def suma_de_factores_propios_factorizado(num: int) -> int:
     """
     1) Obtener los factores a través de una tecnica de factorización.
-    1.1) Si el número a factorizar es primo, conviene no utilizar un algoritmo de factorización
-         ya que por definición sus factores son 1 y él mismo.
-    1.2) Controlamos si el número, antes de ingresarlo al algoritmo, sea compuesto.
     2) Encontrar todas las combinaciones de los factores con sus exponentes.
     3) Realizar la sumatoria de los resultados de cada combinación excepto la primera.
     """
@@ -92,7 +101,7 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     # TODO: implementar cómo encontrar todas las combinaciones de factores.
     return result
 
-# @timer
+@timer
 def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     """
     Esta es la solución más facil pero también la más lenta.
@@ -111,7 +120,11 @@ def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     cache[num] = result
     return result
 
-def numeros_sociables(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
+def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
+    """
+        Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma 
+        de los divisores propios del término anterior, es infinita.
+    """
     sum = suma_de_factores_propios_fuerza_bruta(num)
     # sum = suma_de_factores_propios_factorizado(num)
 
@@ -125,32 +138,36 @@ def numeros_sociables(start: int, num: int, arr: list[int]) -> tuple[bool, list[
         return False, arr
 
     arr.append(sum)
-    return numeros_sociables(start, sum, arr)
+    return construir_sucesion(start, sum, arr)
 
-# @timer
+@timer
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
-    Referencias:
-    - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
-    - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
+        Realiza un control de si el número es primo para así ahorrar operaciones.
+
+        De no ser primo, buscará encontrar si el número tiene una sucesión alícuota.
+
+        Referencias:
+        - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
+        - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
+
     """
     if miller_rabin_deterministico(num):
-        print(f">> Es probable que el número {num} sea primo entonces no va a ser sociable")
         return False, arr
 
     arr.append(num)
-    return numeros_sociables(num, num, arr)
+    return construir_sucesion(num, num, arr)
 
 
 if __name__ == "__main__":
-    # Según wikipedia, el número sociable más pequeño es el 12_497
+    # Según wikipedia, el número sociable más pequeño es el 12_496
     # TODO: Ver cómo llega a verificar esto, así si lo podemos implementar podemos no gastarnos en verificar números a la fuerza.
-    print(suma_de_factores_propios_fuerza_bruta(31))
-    for num in range(1, 12497):
-        print(f">>{num}")
+    for num in range(1, 840):
+        # print(f">>{num}")
         candidato, arr = serie_de_numeros_sociables(num, [])
-        if candidato:
-            if len(arr) == 2:
-                print(f"El número {num} es un número amigo. {arr}")
-            elif len(arr) >= 3:
-                print(f"El número {num} es un número sociable. {arr}")
+        # if candidato:
+        #     if len(arr) == 2:
+        #         print(f"El número {num} es un número amigo. {arr}")
+        #     elif len(arr) >= 3:
+        #         print(f"El número {num} es un número sociable. {arr}")
+
