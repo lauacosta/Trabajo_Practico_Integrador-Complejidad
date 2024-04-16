@@ -1,9 +1,6 @@
-from helpers import timer
 
 cache = {}
 cache_hits = 0
-
-
 
 
 def binpower(base: int, e: int, mod: int) -> int:
@@ -59,7 +56,7 @@ def miller_rabin_deterministico(num: int) -> bool:
 
     return True
 
-@timer
+# @timer
 def division_tentativa(num: int) -> list[int]:
     """
     https://cp-algorithms.com/algebra/factorization.html
@@ -95,7 +92,7 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     # TODO: implementar cómo encontrar todas las combinaciones de factores.
     return result
 
-@timer
+# @timer
 def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     """
     Esta es la solución más facil pero también la más lenta.
@@ -114,12 +111,7 @@ def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     cache[num] = result
     return result
 
-@timer
 def numeros_sociables(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
-    # if miller_rabin_deterministico(num):
-    #     arr.append(num)
-    #     return False, arr
-    
     sum = suma_de_factores_propios_fuerza_bruta(num)
     # sum = suma_de_factores_propios_factorizado(num)
 
@@ -130,18 +122,22 @@ def numeros_sociables(start: int, num: int, arr: list[int]) -> tuple[bool, list[
     # Observé que en una serie infinita la suma de los factores propios no es menor que el valor que estamos ingresando, entonces ya la descarto.
     # TODO: Ver si la observación es correcta y pensar si hay una mejor manera de hacer el control
     if sum < num:
-        arr.append(0)
         return False, arr
 
     arr.append(sum)
     return numeros_sociables(start, sum, arr)
 
+# @timer
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
     Referencias:
     - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
     - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
     """
+    if miller_rabin_deterministico(num):
+        print(f">> Es probable que el número {num} sea primo entonces no va a ser sociable")
+        return False, arr
+
     arr.append(num)
     return numeros_sociables(num, num, arr)
 
