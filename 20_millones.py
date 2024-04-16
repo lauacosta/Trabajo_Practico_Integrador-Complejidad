@@ -162,12 +162,12 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
 if __name__ == "__main__":
     # Según wikipedia, el número sociable más pequeño es el 12_496
     # TODO: Ver cómo llega a verificar esto, así si lo podemos implementar podemos no gastarnos en verificar números a la fuerza.
-    for num in range(1, 840):
-        # print(f">>{num}")
+    for num in range(1, int(20*10e6)):
+        print(f">>{num}")
         candidato, arr = serie_de_numeros_sociables(num, [])
-        # if candidato:
-        #     if len(arr) == 2:
-        #         print(f"El número {num} es un número amigo. {arr}")
-        #     elif len(arr) >= 3:
-        #         print(f"El número {num} es un número sociable. {arr}")
+        if candidato:
+            if len(arr) == 2:
+                print(f"El número {num} es un número amigo. {arr}")
+            elif len(arr) >= 3:
+                print(f"El número {num} es un número sociable. {arr}")
 
