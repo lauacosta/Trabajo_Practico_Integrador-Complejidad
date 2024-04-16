@@ -1,5 +1,6 @@
 import unittest
 
+
 # def lista_de_factores_propios(num: int) -> list[int]:
 def lista_de_factores_propios(num):
     result = []
@@ -10,7 +11,7 @@ def lista_de_factores_propios(num):
     return result
 
 
-def suma_de_factores_propios(num):
+def suma_de_factores_propios_fuerza_bruta(num):
     result = 0
     for i in range(1, num - 1):
         if num % i == 0:
@@ -18,15 +19,18 @@ def suma_de_factores_propios(num):
 
     return result
 
+
 arr = []
+
+
 def numeros_sociables(start, num):
-    sum = suma_de_factores_propios(num)
+    sum = suma_de_factores_propios_fuerza_bruta(num)
     if sum == start:
-        return 
-    
+        return
+
     arr.append(sum)
     numeros_sociables(start, sum)
-    
+
 
 def serie_de_numeros_sociables(start, num):
     """
@@ -35,7 +39,8 @@ def serie_de_numeros_sociables(start, num):
     - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
     """
     arr.append(start)
-    numeros_sociables(start, num) 
+    numeros_sociables(start, num)
+
 
 class TestearFunciones(unittest.TestCase):
     def test_lista_de_factores_primos_1264460(self):
@@ -69,8 +74,8 @@ class TestearFunciones(unittest.TestCase):
             ],
         )
 
-    def test_suma_de_factores_primos_1264460(self):
-        factos = suma_de_factores_propios(1264460)
+    def test_suma_de_factores_primos_1264460_fuerza_bruta(self):
+        factos = suma_de_factores_propios_fuerza_bruta(1264460)
         self.assertEqual(factos, 1547860)
 
     def test_serie_de_numeros_sociables_1264460(self):
