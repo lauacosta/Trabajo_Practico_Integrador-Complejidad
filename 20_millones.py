@@ -1,4 +1,5 @@
 # https://wiki.python.org/moin/TimeComplexity
+from helpers import timer
 
 # @timer
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
@@ -136,20 +137,23 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     # Si buscaramos números amigos bastaría con 3.
     max_iteraciones = 30
     while True:
+        if max_iteraciones == 0:
+            return False, arr
+
         sum = suma_de_factores_propios_factorizado(num)
 
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
         if sum == start:
             return True, arr
 
+        # Para detectar si una secuencia se vuelve cíclica pero no respecto al primer número.
+        if sum in arr:
+            return False, arr
+
         arr.append(sum)
         num = sum
-
-        if max_iteraciones == 0:
-            return False, arr
         max_iteraciones -= 1
 
-# @timer
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
         Realiza un control de si el número es primo para así ahorrar operaciones.
@@ -167,11 +171,9 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
     arr.append(num)
     return construir_sucesion(num, num, arr)
 
-
-if __name__ == "__main__":
-    # Según wikipedia, el número sociable más pequeño es el 12_496
-    # TODO: Ver cómo llega a verificar esto, así si lo podemos implementar podemos no gastarnos en verificar números a la fuerza.
-    for num in range(1, int(20 * 10e6)):
+@timer
+def prueba():
+    for num in range(4, int(20 * 10e6)):
         candidato, arr = serie_de_numeros_sociables(num, [])
         if candidato:
             if len(arr) == 2:
@@ -179,5 +181,9 @@ if __name__ == "__main__":
             elif len(arr) >= 3:
                 print(f"El número {num} es un número sociable. {arr}")
 
+if __name__ == "__main__":
+    # Según wikipedia, el número sociable más pequeño es el 12_496
+    # TODO: Ver cómo llega a verificar esto, así si lo podemos implementar podemos no gastarnos en verificar números a la fuerza.
+    prueba()
 
 

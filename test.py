@@ -209,6 +209,22 @@ class TestearFunciones(unittest.TestCase):
         factos = suma_de_factores_propios_factorizado(1264460)
         self.assertEqual(factos, 1547860)
 
+    def test_suma_de_factores_primos_1264460_factorizado2(self):
+        factos = suma_de_factores_propios_factorizado(45946)
+        self.assertEqual(factos, 22976)
+
+        factos = suma_de_factores_propios_factorizado(486178)
+        self.assertEqual(factos, 469028)
+
+        factos = suma_de_factores_propios_factorizado(469028)
+        self.assertEqual(factos, 486178)
+
+        factos = suma_de_factores_propios_factorizado(503056)
+        self.assertEqual(factos, 514736)
+
+        factos = suma_de_factores_propios_factorizado(514736)
+        self.assertEqual(factos, 503056)
+
     def test_serie_de_numeros_sociables_1264460_factorizado(self):
         _, arr = serie_de_numeros_sociables(1264460, [])
         self.assertEqual(arr, [1264460, 1547860, 1727636, 1305184])
