@@ -132,21 +132,22 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
         Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
         de los divisores propios del término anterior, es infinita.
     """
-    # sum = suma_de_factores_propios_fuerza_bruta(num)
-    sum = suma_de_factores_propios_factorizado(num)
+    # Según Wikipedia el largo más grande conocido de una secuencia para un numero sociable es 28.
+    # Si buscaramos números amigos bastaría con 3.
+    max_iteraciones = 30
+    while True:
+        sum = suma_de_factores_propios_factorizado(num)
 
-    # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
-    if sum == start:
-        return True, arr
+        # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
+        if sum == start:
+            return True, arr
 
-    # Observé que en una serie infinita la suma de los factores propios no es menor que el valor que estamos ingresando, entonces ya la descarto.
-    # TODO: Ver si la observación es correcta y pensar si hay una mejor manera de hacer el control
-    if sum < num:
-        return False, arr
+        arr.append(sum)
+        num = sum
 
-    arr.append(sum)
-    return construir_sucesion(start, sum, arr)
-
+        if max_iteraciones == 0:
+            return False, arr
+        max_iteraciones -= 1
 
 # @timer
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
@@ -177,4 +178,6 @@ if __name__ == "__main__":
                 print(f"El número {num} es un número amigo. {arr}")
             elif len(arr) >= 3:
                 print(f"El número {num} es un número sociable. {arr}")
+
+
 
