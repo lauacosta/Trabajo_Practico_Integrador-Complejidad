@@ -1,5 +1,56 @@
 import unittest
 
+def division_tentativa(num: int) -> list[int]:
+    """
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
+    """
+
+    factores = []
+    for n in range(2, num):
+        if not n * n <= num:
+            break
+
+        while num % n == 0:
+            factores.append(n)
+            num //= n
+
+    if num > 1:
+        factores.append(num)
+
+    return factores
+
+
+def division_tentativa2(num: int) -> list[int]:
+    """
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
+    """
+
+    factores = []
+    if num == 0:
+        return factores
+
+    while num % 2 == 0:
+        factores.append(2)
+        num //= 2
+
+    for n in range(3, num, 2):
+        if not n * n <= num:
+            break
+        while num % n == 0:
+            factores.append(n)
+            num //= n
+
+    if num > 1:
+        factores.append(num)
+
+    return factores
+
 def lista_de_factores_propios(num):
     result = []
     for i in range(1, num - 1):
@@ -84,28 +135,29 @@ def miller_rabin_deterministico(num: int) -> bool:
     return True
 
 
-# @timer
-def division_tentativa(num: int) -> list[int]:
-    """
-        El algoritmo más básico para factorizar un entero en números primos
+# def suma_de_factores_propios_factorizado(num: int) -> int:
+#     """
+#         1) Obtener los factores a través de una tecnica de factorización.
+#         2) Encontrar todas las combinaciones de los factores con sus exponentes.
+#         3) Realizar la sumatoria de los resultados de cada combinación excepto la primera.
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
-    """
+#         Referencias:
+#         - https://planetmath.org/formulaforsumofdivisors
+#     """
 
-    factores = []
-    for n in range(2, num):
-        if not n * n <= num:
-            break
+#     factores = division_tentativa(num)
+#     numeros = {}
+#     for n in factores:
+#         numeros[n] = numeros.get(n, 0) + 1 
 
-        while num % n == 0:
-            factores.append(n)
-            num = int(num / n)
+#     exponentes = list(numeros.values())
+#     numeros_unicos = list(numeros.keys())
 
-    if num > 1:
-        factores.append(num)
-
-    return factores
+#     result = 1
+#     for n, e in zip(numeros_unicos, exponentes):
+#         result *= (pow(n, e+1) - 1) / (n-1)
+    
+#     return int(result - num)
 
 def suma_de_factores_propios_factorizado(num: int) -> int:
     """
@@ -122,12 +174,15 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     for n in factores:
         numeros[n] = numeros.get(n, 0) + 1 
 
-    exponentes = list(numeros.values())
-    numeros_unicos = list(numeros.keys())
+    # exponentes = list(numeros.values())
+    # numeros_unicos = list(numeros.keys())
 
     result = 1
-    for n, e in zip(numeros_unicos, exponentes):
+    for n, e in numeros.items():
         result *= (pow(n, e+1) - 1) / (n-1)
+
+    # for n, e in zip(numeros_unicos, exponentes):
+    #     result *= (pow(n, e+1) - 1) / (n-1)
     
     return int(result - num)
 
@@ -228,6 +283,12 @@ class TestearFunciones(unittest.TestCase):
     def test_serie_de_numeros_sociables_1264460_factorizado(self):
         _, arr = serie_de_numeros_sociables(1264460, [])
         self.assertEqual(arr, [1264460, 1547860, 1727636, 1305184])
+
+    def test_division_tentativa_1264460_1(self):
+        self.assertEqual(division_tentativa(1264460),[2,2,5,17,3719])
+
+    def test_division_tentativa_1264460_2(self):
+        self.assertEqual(division_tentativa2(1264460),[2,2,5,17,3719])
 
 
 if __name__ == "__main__":

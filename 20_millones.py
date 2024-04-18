@@ -1,7 +1,7 @@
-# https://wiki.python.org/moin/TimeComplexity
+#!/usr/bin/env python
 from helpers import timer
+# https://wiki.python.org/moin/TimeComplexity
 
-# @timer
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
     """
     Calcula base^n en O(log n) multiplicaciones.
@@ -20,7 +20,6 @@ def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
 
     return result
 
-# @timer
 def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     """
         Referencias:
@@ -37,7 +36,6 @@ def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     return True
 
 
-# @timer
 def miller_rabin_deterministico(num: int) -> bool:
     """
         Versión determinística del algoritmo del test de primalidad de Miller-Rabin
@@ -66,7 +64,6 @@ def miller_rabin_deterministico(num: int) -> bool:
     return True
 
 
-# @timer
 def division_tentativa(num: int) -> list[int]:
     """
         El algoritmo más básico para factorizar un entero en números primos
@@ -74,15 +71,21 @@ def division_tentativa(num: int) -> list[int]:
         Referencias:
         https://cp-algorithms.com/algebra/factorization.html
     """
-
     factores = []
-    for n in range(2, num):
+    if num == 0:
+        return factores
+
+    while num % 2 == 0:
+        factores.append(2)
+        num = int(num / 2)
+
+    for n in range(3, num, 2):
         if not n * n <= num:
             break
 
         while num % n == 0:
             factores.append(n)
-            num = int(num / n)
+            num //= n
 
     if num > 1:
         factores.append(num)
@@ -105,11 +108,8 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     for n in factores:
         numeros[n] = numeros.get(n, 0) + 1 
 
-    exponentes = list(numeros.values())
-    numeros_unicos = list(numeros.keys())
-
     result = 1
-    for n, e in zip(numeros_unicos, exponentes):
+    for n, e in numeros.items():
         result *= (pow(n, e+1) - 1) / (n-1)
     
     return int(result - num)
@@ -128,18 +128,17 @@ def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     return result
 
 
+# TODO: Hay un bug en la definición correcta de lo que es un número sociable, esto devuelve correctamente los números que son sociables pero también falsos positivos. Hay que revisar y corregir.
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
         Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
         de los divisores propios del término anterior, es infinita.
-    """
-    # Según Wikipedia el largo más grande conocido de una secuencia para un numero sociable es 28.
-    # Si buscaramos números amigos bastaría con 3.
-    max_iteraciones = 30
-    while True:
-        if max_iteraciones == 0:
-            return False, arr
 
+        Referencias:
+        - https://djm.cc/sociable.txt
+    """
+    max_iteraciones = 30
+    while max_iteraciones != 0:
         sum = suma_de_factores_propios_factorizado(num)
 
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
@@ -153,6 +152,8 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
         arr.append(sum)
         num = sum
         max_iteraciones -= 1
+    
+    return False, arr
 
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
@@ -173,17 +174,15 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
 
 @timer
 def prueba():
-    for num in range(4, int(20 * 10e6)):
-        candidato, arr = serie_de_numeros_sociables(num, [])
-        if candidato:
-            if len(arr) == 2:
-                print(f"El número {num} es un número amigo. {arr}")
-            elif len(arr) >= 3:
+    for num in range(4, 100000):
+    # for num in range(4, int(20 * 10e6)):
+        es_candidato, arr = serie_de_numeros_sociables(num, [])
+        if es_candidato:
+            # if len(arr) == 2:
+                # print(f"El número {num} es un número amigo. {arr}")
+            # elif len(arr) >= 3:
+            if len(arr) >= 3:
                 print(f"El número {num} es un número sociable. {arr}")
 
 if __name__ == "__main__":
-    # Según wikipedia, el número sociable más pequeño es el 12_496
-    # TODO: Ver cómo llega a verificar esto, así si lo podemos implementar podemos no gastarnos en verificar números a la fuerza.
     prueba()
-
-
