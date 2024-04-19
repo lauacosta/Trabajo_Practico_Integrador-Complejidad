@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from helpers import timer
+from array import array
 # https://wiki.python.org/moin/TimeComplexity
 
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
@@ -63,36 +64,79 @@ def miller_rabin_deterministico(num: int) -> bool:
 
     return True
 
-
-def division_tentativa(num: int) -> list[int]:
+# @timer
+def division_tentativa2(num: int) -> tuple[list[int], int]:
     """
         El algoritmo más básico para factorizar un entero en números primos
 
         Referencias:
         https://cp-algorithms.com/algebra/factorization.html
     """
-    factores = []
+    ciclos = 0
+    lista_factores = []
+    # if num == 0:
+    #     return lista_factores, ciclos
+
+    for d in [2,3,5]:
+        while num % d == 0:
+            lista_factores.append(d)
+            num //= d
+            ciclos += 1
+        
+        ciclos += 1
+
+    incrementos = array("i", [4,2,4,2,4,6,2,6])
+    i = 0
+    for d in range(7, num + 1, incrementos[i]):
+        if not d * d <= num:
+            break
+
+        while num % d == 0:
+            lista_factores.append(d)
+            num //= d
+            ciclos += 1
+        
+        i += 1
+        if i == 8:
+            i = 0
+
+        ciclos += 1
+
+    if num > 1:
+        lista_factores.append(num)
+
+    return lista_factores, ciclos
+
+
+def division_tentativa(num: int) -> dict[int, int]:
+    """
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
+    """
+    lista_factores = {}
     if num == 0:
-        return factores
+        return lista_factores
 
     while num % 2 == 0:
-        factores.append(2)
-        num = int(num / 2)
+        lista_factores[2] = lista_factores.get(2, 0) + 1 
+        num = num // 2
 
     for n in range(3, num, 2):
         if not n * n <= num:
             break
-
         while num % n == 0:
-            factores.append(n)
+            lista_factores[n] = lista_factores.get(n, 0) + 1 
             num //= n
 
+
     if num > 1:
-        factores.append(num)
+        lista_factores[num] = lista_factores.get(num, 0) + 1 
 
-    return factores
+    return lista_factores
 
-# @timer
+@timer
 def suma_de_factores_propios_factorizado(num: int) -> int:
     """
         1) Obtener los factores a través de una tecnica de factorización.
@@ -102,33 +146,17 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
         Referencias:
         - https://planetmath.org/formulaforsumofdivisors
     """
-
     factores = division_tentativa(num)
-    numeros = {}
-    for n in factores:
-        numeros[n] = numeros.get(n, 0) + 1 
-
     result = 1
-    for n, e in numeros.items():
+    for n, e in factores.items():
         result *= (pow(n, e+1) - 1) / (n-1)
     
+    # print(f"cache hits {cache_hits}")
     return int(result - num)
 
-
-# @timer
-def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
-    """
-        Esta es la solución más facil pero también la más lenta.
-    """
-    result = 0
-    for i in range(1, num):
-        if num % i == 0:
-            result += i
-
-    return result
-
-
-# TODO: Hay un bug en la definición correcta de lo que es un número sociable, esto devuelve correctamente los números que son sociables pero también falsos positivos. Hay que revisar y corregir.
+# Podríamos guardar un registros de las sumas de las secuencias que efectivamente son de numeros sociables.
+# Así cuando entra un número buscamos si ya fue generado dentro de una secuencia sociable. 
+# Habría que implementar y ver cual alternativa es más rápida.
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
         Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
@@ -139,6 +167,7 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     """
     max_iteraciones = 30
     while max_iteraciones != 0:
+        print(num)
         sum = suma_de_factores_propios_factorizado(num)
 
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
@@ -170,11 +199,14 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
         return False, arr
 
     arr.append(num)
-    return construir_sucesion(num, num, arr)
+    a,b = construir_sucesion(num,num,arr)
+    return a,b
+    # return construir_sucesion(num, num, arr)
+
 
 @timer
 def prueba():
-    for num in range(4, 100000):
+    for num in range(12496, 100000):
     # for num in range(4, int(20 * 10e6)):
         es_candidato, arr = serie_de_numeros_sociables(num, [])
         if es_candidato:
@@ -182,7 +214,11 @@ def prueba():
                 # print(f"El número {num} es un número amigo. {arr}")
             # elif len(arr) >= 3:
             if len(arr) >= 3:
-                print(f"El número {num} es un número sociable. {arr}")
+                print(f"El número {num} es un número sociable.")
+                # print(f"El número {num} es un número sociable. {arr}")
 
 if __name__ == "__main__":
     prueba()
+
+    
+   

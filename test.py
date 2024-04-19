@@ -1,4 +1,53 @@
 import unittest
+from math import sqrt
+from helpers import timer
+
+# TODO: Bug, devuelve también números que no son primos!
+@timer
+def criba_erathosthenes(num: int) -> list[int]:
+    if num == 0 or num == 1:
+        return []
+
+    es_primo = [True for _ in range(num+1)]
+    es_primo[0] = es_primo[1] = False
+    for i in range(2, num + 1):
+        if i & 1 == 0:
+            continue
+
+        if es_primo[i] and i * i <= num:
+            for j in range(i*i, num + 1, i):
+                if j <= num:
+                    es_primo[j] = False
+    
+    result = []
+    count = 0
+    for i in es_primo:
+        if i:
+            result.append(count)
+        count += 1
+
+    return result
+
+
+def division_tentativa3(num: int) -> list[int]:
+    """
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
+    """
+    factores = []
+    for d in criba_erathosthenes(int(sqrt(num))):
+        if d*d > num:
+            break
+        while num % d == 0:
+            factores.append(d)
+            num //= d
+
+    if num > 1:
+        factores.append(num)
+
+    return factores
 
 def division_tentativa(num: int) -> list[int]:
     """
@@ -289,6 +338,9 @@ class TestearFunciones(unittest.TestCase):
 
     def test_division_tentativa_1264460_2(self):
         self.assertEqual(division_tentativa2(1264460),[2,2,5,17,3719])
+
+    def test_division_tentativa_1264460_3(self):
+        self.assertEqual(division_tentativa3(1264460),[2,2,5,17,3719])
 
 
 if __name__ == "__main__":
