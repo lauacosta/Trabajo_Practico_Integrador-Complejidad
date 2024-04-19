@@ -225,9 +225,8 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
 
 @total_timer
 def main():
-    limite = 100000
+    limite = 20000000
     for num in range(12496, limite+1):
-    # for num in range(4, int(20 * 10e6)):
         es_candidato, arr = serie_de_numeros_sociables(num, [])
         if es_candidato:
             # if len(arr) == 2:
