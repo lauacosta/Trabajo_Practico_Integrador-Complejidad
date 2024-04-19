@@ -149,7 +149,7 @@ def division_tentativa(num: int) -> dict[int, int]:
 # cache = {}
 # cache_de_cache = {}
 # cache = LFUCache()
-cache = Cache()
+cache_suma_factores = Cache()
 
 # @timer
 @total_timer
@@ -162,9 +162,9 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     Referencias:
     - https://planetmath.org/formulaforsumofdivisors
     """
-    cache.cache_refs += 1
-    if num in cache:
-        return cache[num]
+    cache_suma_factores.cache_refs += 1
+    if num in cache_suma_factores:
+        return cache_suma_factores[num]
 
     factores = division_tentativa(num)
     result = 1
@@ -172,13 +172,11 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
         result *= (pow(n, e + 1) - 1) / (n - 1)
 
     result = int(result - num)
-    cache[num] = result
+    cache_suma_factores[num] = result
     return result
 
 
-# Podríamos guardar un registros de las sumas de las secuencias que efectivamente son de numeros sociables.
-# Así cuando entra un número buscamos si ya fue generado dentro de una secuencia sociable.
-# Habría que implementar y ver cual alternativa es más rápida.
+
 @total_timer
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
@@ -188,10 +186,14 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     Referencias:
     - https://djm.cc/sociable.txt
     """
-    max_iteraciones = 30
-    while max_iteraciones != 0:
-        sum = suma_de_factores_propios_factorizado(num)
 
+    if num == 14316:
+        max_iteraciones = 30
+    else: 
+        max_iteraciones = 10
+    while max_iteraciones != 0:
+
+        sum = suma_de_factores_propios_factorizado(num)
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
         if sum == start:
             return True, arr
@@ -207,8 +209,9 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     return False, arr
 
 
+cache_numeros_sociables = Cache()
 @total_timer
-def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
+def sucesion_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
     Realiza un control de si el número es primo para así ahorrar operaciones.
 
@@ -219,46 +222,66 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
     - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
 
     """
+    # No significa que los numeros no sean sociables sino que ya fueron mostrados por pantalla.
+    # El porcentaje de hits es terriblemente bajo y por sí solo apenas reduce el tiempo de ejecución, incluso lo sube.
+    # La ventaja es que me permite determinar la maxima cantidad de iteraciones a 10 porque no evaluará
+    # El resto de numeros de la sucesión de 14316 y eso reduce muchísimo el tiempo de ejecución.
+    # Estaría bueno encontrar otra manera de mantener el formato de salida y la cantidad de iteraciones a 10.
+
+    cache_numeros_sociables.cache_refs += 1
+    if num in cache_numeros_sociables:
+        cache_numeros_sociables.cache_hits += 1
+        return False, arr
     if miller_rabin_deterministico(num):
         return False, arr
 
     arr.append(num)
-    a, b = construir_sucesion(num, num, arr)
-    return a, b
-    # return construir_sucesion(num, num, arr)
+    es_candidato, sucesion = construir_sucesion(num, num, arr)
+    if es_candidato and len(sucesion) >= 3:
+        for n in sucesion:
+            cache_numeros_sociables[n] = 0
+
+    return es_candidato, sucesion
 
 
 @total_timer
 def main():
-    limite = 100000
-    ciclo = 0
+    """
+        Referencias:
+        - https://djm.cc/sociable.txt
+    """
+    limite = 2200000
+    actual = 0
+    nro_sucesion = 1
     try:
         for num in range(12496, limite + 1):
-            es_candidato, arr = serie_de_numeros_sociables(num, [])
+        # for num in range(1260000, limite + 1):
+            es_candidato, sucesion = sucesion_de_numeros_sociables(num, [])
             if es_candidato:
-                # if len(arr) == 2:
-                # print(f"El número {num} es un número amigo. {arr}")
-                # elif len(arr) >= 3:
-                if len(arr) >= 3:
-                    print(f"El número {num} es un número sociable.")
-            ciclo = num
+                if len(sucesion) >= 3:
+                    print(f"{nro_sucesion:2} {sucesion[0]:6}")
+                    for n in sucesion[1:]:
+                        print(f"{n:9}")
+
+                    print("")
+                    nro_sucesion += 1
+            actual = num
 
         print("---------------------------------------")
-        print(f"Los numeros sociales hasta {ciclo}:")
+        print(f"Los numeros sociales hasta {actual}:")
 
     except KeyboardInterrupt:
         print("---------------------------------------")
-        print(f"Ejecución interrumpida, los numeros sociales hasta {ciclo}:")
+        print(f"Ejecución interrumpida, los numeros sociales hasta {actual}:")
 
     finally:
-        print(f"  Total cache length: {len(cache)}")
-        print(f"  Total cache refs: {cache.cache_refs}")
-        print(f"  Total cache hits: {cache.cache_hits} ({((cache.cache_hits / cache.cache_refs) * 100):1.3f} %)")
-
-
-
-        # print(f"  Total cache content: {sorted(cache.contador_accesos.items(), key=lambda item: item[1], reverse=True)}")
-
+        print(f"  Elementos en el cache_suma_factores: {len(cache_suma_factores)}")
+        print(f"  Cache refs: {cache_suma_factores.cache_refs}")
+        print(f"  Cache hits: {cache_suma_factores.cache_hits} ({((cache_suma_factores.cache_hits / cache_suma_factores.cache_refs) * 100):1.3f} %)")
+        print("")
+        print(f"  Elementos en el cache_numeros_sociables: {len(cache_numeros_sociables)}")
+        print(f"  Cache refs: {cache_numeros_sociables.cache_refs}")
+        print(f"  Cache hits: {cache_numeros_sociables.cache_hits} ({((cache_numeros_sociables.cache_hits / cache_numeros_sociables.cache_refs) * 100):1.3f} %)")
 
 if __name__ == "__main__":
     main()

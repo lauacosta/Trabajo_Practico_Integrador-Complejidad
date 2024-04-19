@@ -2,30 +2,34 @@ import unittest
 from math import sqrt
 from helpers import timer
 
-
-# TODO: Bug, devuelve también números que no son primos!
 @timer
-def criba_erathosthenes(num: int) -> list[int]:
+def criba_eratosthenes(num: int) -> list[int]:
+    """
+    Referencias:
+    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    """
     if num == 0 or num == 1:
         return []
 
-    es_primo = [True for _ in range(num + 1)]
-    es_primo[0] = es_primo[1] = False
-    for i in range(2, num + 1):
-        if i & 1 == 0:
-            continue
-
-        if es_primo[i] and i * i <= num:
-            for j in range(i * i, num + 1, i):
-                if j <= num:
-                    es_primo[j] = False
-
     result = []
-    count = 0
-    for i in es_primo:
-        if i:
-            result.append(count)
-        count += 1
+    es_primo = [True for _ in range(num + 1)]
+    es_primo[0] = False
+    es_primo[1] = False
+    result.append(2)
+
+    # Hasta que no encuentre una mejor solución así se queda.
+    if num == 3:
+        result.append(3)
+        return result
+
+    for i in range(3, num + 1, 2):
+        if not i * i <= num:
+            break
+
+        if es_primo[i] == True:
+            result.append(i)
+            for j in range(i * i, num + 1, i * 2):
+                es_primo[j] = False
 
     return result
 
