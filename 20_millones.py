@@ -1,8 +1,12 @@
 #!/usr/bin/env python
-from helpers import timer
+from helpers import total_timer, mostrar_tiempos_ejecución
 from array import array
 # https://wiki.python.org/moin/TimeComplexity
 
+
+
+
+@total_timer
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
     """
     Calcula base^n en O(log n) multiplicaciones.
@@ -21,6 +25,7 @@ def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
 
     return result
 
+@total_timer
 def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     """
         Referencias:
@@ -37,6 +42,7 @@ def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     return True
 
 
+@total_timer
 def miller_rabin_deterministico(num: int) -> bool:
     """
         Versión determinística del algoritmo del test de primalidad de Miller-Rabin
@@ -108,6 +114,7 @@ def division_tentativa2(num: int) -> tuple[list[int], int]:
     return lista_factores, ciclos
 
 
+@total_timer
 def division_tentativa(num: int) -> dict[int, int]:
     """
         El algoritmo más básico para factorizar un entero en números primos
@@ -136,7 +143,12 @@ def division_tentativa(num: int) -> dict[int, int]:
 
     return lista_factores
 
-@timer
+# TODO: Lo que se puede hacer para mejorar el cache es limitar número elementos a los x más recientemente usados.
+# Porque la complejidad temporal de la búsqueda en un diccionario es O(n), entonces no conviene tener elementos que no estén siendo útiles.
+cache = {}
+cache_hits = 0
+# @timer
+@total_timer
 def suma_de_factores_propios_factorizado(num: int) -> int:
     """
         1) Obtener los factores a través de una tecnica de factorización.
@@ -146,17 +158,24 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
         Referencias:
         - https://planetmath.org/formulaforsumofdivisors
     """
+    if num in cache:
+        global cache_hits
+        cache_hits += 1
+        return cache[num]
+
     factores = division_tentativa(num)
     result = 1
     for n, e in factores.items():
         result *= (pow(n, e+1) - 1) / (n-1)
     
-    # print(f"cache hits {cache_hits}")
-    return int(result - num)
+    result = int(result - num)
+    cache[num] = result
+    return result
 
 # Podríamos guardar un registros de las sumas de las secuencias que efectivamente son de numeros sociables.
 # Así cuando entra un número buscamos si ya fue generado dentro de una secuencia sociable. 
 # Habría que implementar y ver cual alternativa es más rápida.
+@total_timer
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
         Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
@@ -167,7 +186,6 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     """
     max_iteraciones = 30
     while max_iteraciones != 0:
-        print(num)
         sum = suma_de_factores_propios_factorizado(num)
 
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
@@ -184,6 +202,7 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
     
     return False, arr
 
+@total_timer
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
         Realiza un control de si el número es primo para así ahorrar operaciones.
@@ -204,9 +223,10 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
     # return construir_sucesion(num, num, arr)
 
 
-@timer
-def prueba():
-    for num in range(12496, 100000):
+@total_timer
+def main():
+    limite = 100000
+    for num in range(12496, limite+1):
     # for num in range(4, int(20 * 10e6)):
         es_candidato, arr = serie_de_numeros_sociables(num, [])
         if es_candidato:
@@ -215,10 +235,15 @@ def prueba():
             # elif len(arr) >= 3:
             if len(arr) >= 3:
                 print(f"El número {num} es un número sociable.")
-                # print(f"El número {num} es un número sociable. {arr}")
+
+    print("---------------------------------------")
+    print(f"Los numeros sociales hasta {limite}:")
+    print(f"  Total cache hits: {cache_hits}")
+    print(f"  Total cache length: {len(cache)}")
+
 
 if __name__ == "__main__":
-    prueba()
-
+    main()
+    mostrar_tiempos_ejecución()
     
    
