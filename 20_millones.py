@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from helpers import total_timer, mostrar_tiempos_ejecución
+# from helpers import LFUCache
+from helpers import Cache 
 from array import array
 # https://wiki.python.org/moin/TimeComplexity
 
@@ -70,7 +72,6 @@ def miller_rabin_deterministico(num: int) -> bool:
     return True
 
 
-# @timer
 def division_tentativa2(num: int) -> tuple[list[int], int]:
     """
     El algoritmo más básico para factorizar un entero en números primos
@@ -145,9 +146,10 @@ def division_tentativa(num: int) -> dict[int, int]:
 
 # TODO: Lo que se puede hacer para mejorar el cache es limitar número elementos a los x más recientemente usados.
 # Porque la complejidad temporal de la búsqueda en un diccionario es O(n), entonces no conviene tener elementos que no estén siendo útiles.
-cache = {}
-cache_hits = 0
-
+# cache = {}
+# cache_de_cache = {}
+# cache = LFUCache()
+cache = Cache()
 
 # @timer
 @total_timer
@@ -160,9 +162,8 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     Referencias:
     - https://planetmath.org/formulaforsumofdivisors
     """
+    cache.cache_refs += 1
     if num in cache:
-        global cache_hits
-        cache_hits += 1
         return cache[num]
 
     factores = division_tentativa(num)
@@ -229,22 +230,37 @@ def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int
 
 @total_timer
 def main():
-    limite = 20000000
-    for num in range(12496, limite + 1):
-        es_candidato, arr = serie_de_numeros_sociables(num, [])
-        if es_candidato:
-            # if len(arr) == 2:
-            # print(f"El número {num} es un número amigo. {arr}")
-            # elif len(arr) >= 3:
-            if len(arr) >= 3:
-                print(f"El número {num} es un número sociable.")
+    limite = 100000
+    ciclo = 0
+    try:
+        for num in range(12496, limite + 1):
+            es_candidato, arr = serie_de_numeros_sociables(num, [])
+            if es_candidato:
+                # if len(arr) == 2:
+                # print(f"El número {num} es un número amigo. {arr}")
+                # elif len(arr) >= 3:
+                if len(arr) >= 3:
+                    print(f"El número {num} es un número sociable.")
+            ciclo = num
 
-    print("---------------------------------------")
-    print(f"Los numeros sociales hasta {limite}:")
-    print(f"  Total cache hits: {cache_hits}")
-    print(f"  Total cache length: {len(cache)}")
+        print("---------------------------------------")
+        print(f"Los numeros sociales hasta {ciclo}:")
+
+    except KeyboardInterrupt:
+        print("---------------------------------------")
+        print(f"Ejecución interrumpida, los numeros sociales hasta {ciclo}:")
+
+    finally:
+        print(f"  Total cache length: {len(cache)}")
+        print(f"  Total cache refs: {cache.cache_refs}")
+        print(f"  Total cache hits: {cache.cache_hits} ({((cache.cache_hits / cache.cache_refs) * 100):1.3f} %)")
+
+
+
+        # print(f"  Total cache content: {sorted(cache.contador_accesos.items(), key=lambda item: item[1], reverse=True)}")
 
 
 if __name__ == "__main__":
     main()
     mostrar_tiempos_ejecución()
+        
