@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from helpers import total_timer, mostrar_tiempos_ejecución
-# from helpers import LFUCache
 from helpers import Cache 
+
 from array import array
 # https://wiki.python.org/moin/TimeComplexity
 
@@ -146,11 +146,8 @@ def division_tentativa(num: int) -> dict[int, int]:
 
 # TODO: Lo que se puede hacer para mejorar el cache es limitar número elementos a los x más recientemente usados.
 # Porque la complejidad temporal de la búsqueda en un diccionario es O(n), entonces no conviene tener elementos que no estén siendo útiles.
-# cache = {}
-# cache_de_cache = {}
-# cache = LFUCache()
+# Algunas opciones podrían ser ver implementaciones sencillas de LRU o LFU.
 cache_suma_factores = Cache()
-
 # @timer
 @total_timer
 def suma_de_factores_propios_factorizado(num: int) -> int:
