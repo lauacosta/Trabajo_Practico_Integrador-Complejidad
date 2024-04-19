@@ -242,12 +242,11 @@ def sucesion_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[
 
 
 @total_timer
-def main():
+def main(limite: int):
     """
         Referencias:
         - https://djm.cc/sociable.txt
     """
-    limite = 2200000
     actual = 0
     nro_sucesion = 1
     try:
@@ -280,7 +279,27 @@ def main():
         print(f"  Cache refs: {cache_numeros_sociables.cache_refs}")
         print(f"  Cache hits: {cache_numeros_sociables.cache_hits} ({((cache_numeros_sociables.cache_hits / cache_numeros_sociables.cache_refs) * 100):1.3f} %)")
 
+def control(n):
+    n = int(n)
+    if n < 12496:
+        raise argparse.ArgumentTypeError("La entrada tiene que ser mas grande que 12496")
+
+    return n
+
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-n",
+        "--entrada",
+        type=control,
+        default=1000000,
+        help="Determina el tamaño de la entrada, debe ser >= 12496",
+    )
+    args = parser.parse_args()
+
+    main(args.entrada)
     mostrar_tiempos_ejecución()
         
