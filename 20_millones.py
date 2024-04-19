@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from helpers import total_timer, mostrar_tiempos_ejecución
-from helpers import Cache 
-
+from helpers import Cache
 from array import array
 # https://wiki.python.org/moin/TimeComplexity
 
@@ -72,6 +71,7 @@ def miller_rabin_deterministico(num: int) -> bool:
     return True
 
 
+# TODO: Revisar si anda bien
 def division_tentativa2(num: int) -> tuple[list[int], int]:
     """
     El algoritmo más básico para factorizar un entero en números primos
@@ -148,6 +148,8 @@ def division_tentativa(num: int) -> dict[int, int]:
 # Porque la complejidad temporal de la búsqueda en un diccionario es O(n), entonces no conviene tener elementos que no estén siendo útiles.
 # Algunas opciones podrían ser ver implementaciones sencillas de LRU o LFU.
 cache_suma_factores = Cache()
+
+
 # @timer
 @total_timer
 def suma_de_factores_propios_factorizado(num: int) -> int:
@@ -173,7 +175,6 @@ def suma_de_factores_propios_factorizado(num: int) -> int:
     return result
 
 
-
 @total_timer
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
@@ -186,10 +187,9 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
 
     if num == 14316:
         max_iteraciones = 30
-    else: 
+    else:
         max_iteraciones = 10
     while max_iteraciones != 0:
-
         sum = suma_de_factores_propios_factorizado(num)
         # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
         if sum == start:
@@ -207,6 +207,8 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
 
 
 cache_numeros_sociables = Cache()
+
+
 @total_timer
 def sucesion_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
@@ -244,14 +246,14 @@ def sucesion_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[
 @total_timer
 def main(limite: int):
     """
-        Referencias:
-        - https://djm.cc/sociable.txt
+    Referencias:
+    - https://djm.cc/sociable.txt
     """
     actual = 0
     nro_sucesion = 1
     try:
         for num in range(12496, limite + 1):
-        # for num in range(1260000, limite + 1):
+            # for num in range(1260000, limite + 1):
             es_candidato, sucesion = sucesion_de_numeros_sociables(num, [])
             if es_candidato:
                 if len(sucesion) >= 3:
@@ -273,21 +275,32 @@ def main(limite: int):
     finally:
         print(f"  Elementos en el cache_suma_factores: {len(cache_suma_factores)}")
         print(f"  Cache refs: {cache_suma_factores.cache_refs}")
-        print(f"  Cache hits: {cache_suma_factores.cache_hits} ({((cache_suma_factores.cache_hits / cache_suma_factores.cache_refs) * 100):1.3f} %)")
+        print(
+            f"  Cache hits: {cache_suma_factores.cache_hits} ({((cache_suma_factores.cache_hits / cache_suma_factores.cache_refs) * 100):1.3f} %)"
+        )
         print("")
-        print(f"  Elementos en el cache_numeros_sociables: {len(cache_numeros_sociables)}")
+        print(
+            f"  Elementos en el cache_numeros_sociables: {len(cache_numeros_sociables)}"
+        )
         print(f"  Cache refs: {cache_numeros_sociables.cache_refs}")
-        print(f"  Cache hits: {cache_numeros_sociables.cache_hits} ({((cache_numeros_sociables.cache_hits / cache_numeros_sociables.cache_refs) * 100):1.3f} %)")
+        print(
+            f"  Cache hits: {cache_numeros_sociables.cache_hits} ({((cache_numeros_sociables.cache_hits / cache_numeros_sociables.cache_refs) * 100):1.3f} %)"
+        )
+
 
 def control(n):
     n = int(n)
     if n < 12496:
-        raise argparse.ArgumentTypeError("La entrada tiene que ser mas grande que 12496")
+        raise argparse.ArgumentTypeError(
+            "La entrada tiene que ser mas grande que 12496"
+        )
 
     return n
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -302,4 +315,3 @@ if __name__ == "__main__":
 
     main(args.entrada)
     mostrar_tiempos_ejecución()
-        

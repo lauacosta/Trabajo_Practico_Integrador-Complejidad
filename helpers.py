@@ -7,8 +7,9 @@ class Cache(dict):
 
     def __getitem__(self, key):
         self.cache_hits += 1
-        self.contador_accesos[key] = self.contador_accesos.get(key,0) + 1
+        self.contador_accesos[key] = self.contador_accesos.get(key, 0) + 1
         return super().__getitem__(key)
+
 
 def time_interval(interval):
     if interval < 0.001:

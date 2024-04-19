@@ -2,6 +2,7 @@ import unittest
 from math import sqrt
 from helpers import timer
 
+
 @timer
 def criba_eratosthenes(num: int) -> list[int]:
     """
