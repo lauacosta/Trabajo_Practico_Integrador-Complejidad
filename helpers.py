@@ -6,6 +6,7 @@ def time_interval(interval):
     else:
         return "{:10.3f} s".format(interval)
 
+
 def func_name(func):
     return str(func).split(" ")[1]
 
@@ -24,7 +25,10 @@ def timer(func):
 
     return wrapper
 
+
 registro_tiempo = {}
+
+
 def total_timer(func):
     import time
 
@@ -33,13 +37,16 @@ def total_timer(func):
         result = func(*wrapped_func_args)
         end_time = time.time()
 
-        registro_tiempo[func_name(func)] = registro_tiempo.get(func_name(func), 0) + (end_time - start_time)
+        registro_tiempo[func_name(func)] = registro_tiempo.get(func_name(func), 0) + (
+            end_time - start_time
+        )
         return result
 
     return wrapper
 
+
 def mostrar_tiempos_ejecución():
     print("    Tiempos de ejecución de cada función:")
     for func_name, tiempo in registro_tiempo.items():
-        print(f"      - {func_name}:") 
+        print(f"      - {func_name}:")
         print(f"     {time_interval(tiempo)}")

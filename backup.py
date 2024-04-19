@@ -4,22 +4,22 @@
 @timer
 def criba_eratosthenes_segmentada(num: int) -> int:
     """
-        Referencias:
-        - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    Referencias:
+    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
     """
     S = 10000
     primes = []
     nsqrt = int(sqrt(num))
-    is_prime = [True for _ in range(nsqrt+2)]
-    
-    for i in range(2, nsqrt+1):
+    is_prime = [True for _ in range(nsqrt + 2)]
+
+    for i in range(2, nsqrt + 1):
         if is_prime[i]:
             primes.append(i)
-            for j in range(i*i, nsqrt+1, i):
+            for j in range(i * i, nsqrt + 1, i):
                 is_prime[j] = False
     result = 0
     block = [None] * S
-    for k in range(num+1):
+    for k in range(num + 1):
         if not k * S <= num:
             break
 
@@ -39,8 +39,9 @@ def criba_eratosthenes_segmentada(num: int) -> int:
                     result += 1
     return result
 
+
 @timer
-def criba_eratosthenes_rango(L: int, R:int) -> list[int]:
+def criba_eratosthenes_rango(L: int, R: int) -> list[int]:
     lim = int(sqrt(R))
     primes = []
     mark = [False for _ in range(lim + 1)]
@@ -50,10 +51,9 @@ def criba_eratosthenes_rango(L: int, R:int) -> list[int]:
             for j in range(i * i, lim + 1, i):
                 mark[j] = True
 
-
-    es_primo = [True for _ in range(R-L+1)]
+    es_primo = [True for _ in range(R - L + 1)]
     for i in primes:
-        start = max(i*i, (L + i -1) // i * i)
+        start = max(i * i, (L + i - 1) // i * i)
         for j in range(start, R + 1, i):
             es_primo[j - L] = False
             if j == i and j not in primes:
@@ -63,20 +63,19 @@ def criba_eratosthenes_rango(L: int, R:int) -> list[int]:
         es_primo[0] = False
 
     return primes
-            
 
 
 @timer
 def criba_eratosthenes(num: int) -> list[int]:
     """
-        Referencias:
-        - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    Referencias:
+    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
     """
     if num == 0 or num == 1:
         return []
 
     result = []
-    es_primo = [True for _ in range(num+1)]
+    es_primo = [True for _ in range(num + 1)]
     es_primo[0] = False
     es_primo[1] = False
     result.append(2)
@@ -92,11 +91,11 @@ def criba_eratosthenes(num: int) -> list[int]:
 
         if es_primo[i] == True:
             result.append(i)
-            for j in range(i*i, num+1, i*2):
+            for j in range(i * i, num + 1, i * 2):
                 es_primo[j] = False
 
-
     return result
+
 
 # @timer
 # def division_tentativa_serial(start, end) -> list[int]:
@@ -129,10 +128,10 @@ def division_tentativa_serial(start, end) -> tuple[list[int], int]:
 @timer
 def division_tentativa_primos(num: int, lista_primos: list[int]) -> list[int]:
     """
-        El algoritmo más básico para factorizar un entero en números primos
+    El algoritmo más básico para factorizar un entero en números primos
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
+    Referencias:
+    https://cp-algorithms.com/algebra/factorization.html
     """
     ciclos = 0
     if num == 0 or num == 1:
@@ -152,7 +151,6 @@ def division_tentativa_primos(num: int, lista_primos: list[int]) -> list[int]:
 
     if num > 1:
         lista_factores.append(num)
-
 
     return lista_factores
 

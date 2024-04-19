@@ -2,23 +2,24 @@ import unittest
 from math import sqrt
 from helpers import timer
 
+
 # TODO: Bug, devuelve también números que no son primos!
 @timer
 def criba_erathosthenes(num: int) -> list[int]:
     if num == 0 or num == 1:
         return []
 
-    es_primo = [True for _ in range(num+1)]
+    es_primo = [True for _ in range(num + 1)]
     es_primo[0] = es_primo[1] = False
     for i in range(2, num + 1):
         if i & 1 == 0:
             continue
 
         if es_primo[i] and i * i <= num:
-            for j in range(i*i, num + 1, i):
+            for j in range(i * i, num + 1, i):
                 if j <= num:
                     es_primo[j] = False
-    
+
     result = []
     count = 0
     for i in es_primo:
@@ -31,14 +32,14 @@ def criba_erathosthenes(num: int) -> list[int]:
 
 def division_tentativa3(num: int) -> list[int]:
     """
-        El algoritmo más básico para factorizar un entero en números primos
+    El algoritmo más básico para factorizar un entero en números primos
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
+    Referencias:
+    https://cp-algorithms.com/algebra/factorization.html
     """
     factores = []
     for d in criba_erathosthenes(int(sqrt(num))):
-        if d*d > num:
+        if d * d > num:
             break
         while num % d == 0:
             factores.append(d)
@@ -49,12 +50,13 @@ def division_tentativa3(num: int) -> list[int]:
 
     return factores
 
+
 def division_tentativa(num: int) -> list[int]:
     """
-        El algoritmo más básico para factorizar un entero en números primos
+    El algoritmo más básico para factorizar un entero en números primos
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
+    Referencias:
+    https://cp-algorithms.com/algebra/factorization.html
     """
 
     factores = []
@@ -74,10 +76,10 @@ def division_tentativa(num: int) -> list[int]:
 
 def division_tentativa2(num: int) -> list[int]:
     """
-        El algoritmo más básico para factorizar un entero en números primos
+    El algoritmo más básico para factorizar un entero en números primos
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
+    Referencias:
+    https://cp-algorithms.com/algebra/factorization.html
     """
 
     factores = []
@@ -100,6 +102,7 @@ def division_tentativa2(num: int) -> list[int]:
 
     return factores
 
+
 def lista_de_factores_propios(num):
     result = []
     for i in range(1, num - 1):
@@ -108,9 +111,10 @@ def lista_de_factores_propios(num):
 
     return result
 
+
 def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
     """
-        Esta es la solución más facil pero también la más lenta.
+    Esta es la solución más facil pero también la más lenta.
     """
     result = 0
     for i in range(1, num):
@@ -118,6 +122,7 @@ def suma_de_factores_propios_fuerza_bruta(num: int) -> int:
             result += i
 
     return result
+
 
 # @timer
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
@@ -138,11 +143,12 @@ def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
 
     return result
 
+
 # @timer
 def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     """
-        Referencias:
-        https://cp-algorithms.com/algebra/primality_tests.html
+    Referencias:
+    https://cp-algorithms.com/algebra/primality_tests.html
     """
     x = potencia_por_cuadrados(a, d, num)
     if x == 1 or x == (num - 1):
@@ -158,11 +164,11 @@ def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
 # @timer
 def miller_rabin_deterministico(num: int) -> bool:
     """
-        Versión determinística del algoritmo del test de primalidad de Miller-Rabin
+    Versión determinística del algoritmo del test de primalidad de Miller-Rabin
 
-        Referencias:
-        https://cp-algorithms.com/algebra/primality_tests.html
-        https://es.wikipedia.org/wiki/Test_de_primalidad
+    Referencias:
+    https://cp-algorithms.com/algebra/primality_tests.html
+    https://es.wikipedia.org/wiki/Test_de_primalidad
     """
     if num < 2:
         return False
@@ -197,7 +203,7 @@ def miller_rabin_deterministico(num: int) -> bool:
 #     factores = division_tentativa(num)
 #     numeros = {}
 #     for n in factores:
-#         numeros[n] = numeros.get(n, 0) + 1 
+#         numeros[n] = numeros.get(n, 0) + 1
 
 #     exponentes = list(numeros.values())
 #     numeros_unicos = list(numeros.keys())
@@ -205,40 +211,42 @@ def miller_rabin_deterministico(num: int) -> bool:
 #     result = 1
 #     for n, e in zip(numeros_unicos, exponentes):
 #         result *= (pow(n, e+1) - 1) / (n-1)
-    
+
 #     return int(result - num)
+
 
 def suma_de_factores_propios_factorizado(num: int) -> int:
     """
-        1) Obtener los factores a través de una tecnica de factorización.
-        2) Encontrar todas las combinaciones de los factores con sus exponentes.
-        3) Realizar la sumatoria de los resultados de cada combinación excepto la primera.
+    1) Obtener los factores a través de una tecnica de factorización.
+    2) Encontrar todas las combinaciones de los factores con sus exponentes.
+    3) Realizar la sumatoria de los resultados de cada combinación excepto la primera.
 
-        Referencias:
-        - https://planetmath.org/formulaforsumofdivisors
+    Referencias:
+    - https://planetmath.org/formulaforsumofdivisors
     """
 
     factores = division_tentativa(num)
     numeros = {}
     for n in factores:
-        numeros[n] = numeros.get(n, 0) + 1 
+        numeros[n] = numeros.get(n, 0) + 1
 
     # exponentes = list(numeros.values())
     # numeros_unicos = list(numeros.keys())
 
     result = 1
     for n, e in numeros.items():
-        result *= (pow(n, e+1) - 1) / (n-1)
+        result *= (pow(n, e + 1) - 1) / (n - 1)
 
     # for n, e in zip(numeros_unicos, exponentes):
     #     result *= (pow(n, e+1) - 1) / (n-1)
-    
+
     return int(result - num)
+
 
 def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
-        Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
-        de los divisores propios del término anterior, es infinita.
+    Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
+    de los divisores propios del término anterior, es infinita.
     """
     # sum = suma_de_factores_propios_fuerza_bruta(num)
     sum = suma_de_factores_propios_factorizado(num)
@@ -257,13 +265,13 @@ def construir_sucesion(start: int, num: int, arr: list[int]) -> tuple[bool, list
 
 def serie_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[int]]:
     """
-        Realiza un control de si el número es primo para así ahorrar operaciones.
+    Realiza un control de si el número es primo para así ahorrar operaciones.
 
-        De no ser primo, buscará encontrar si el número tiene una sucesión alícuota.
+    De no ser primo, buscará encontrar si el número tiene una sucesión alícuota.
 
-        Referencias:
-        - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
-        - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
+    Referencias:
+    - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
+    - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
 
     """
     if miller_rabin_deterministico(num):
@@ -334,13 +342,13 @@ class TestearFunciones(unittest.TestCase):
         self.assertEqual(arr, [1264460, 1547860, 1727636, 1305184])
 
     def test_division_tentativa_1264460_1(self):
-        self.assertEqual(division_tentativa(1264460),[2,2,5,17,3719])
+        self.assertEqual(division_tentativa(1264460), [2, 2, 5, 17, 3719])
 
     def test_division_tentativa_1264460_2(self):
-        self.assertEqual(division_tentativa2(1264460),[2,2,5,17,3719])
+        self.assertEqual(division_tentativa2(1264460), [2, 2, 5, 17, 3719])
 
     def test_division_tentativa_1264460_3(self):
-        self.assertEqual(division_tentativa3(1264460),[2,2,5,17,3719])
+        self.assertEqual(division_tentativa3(1264460), [2, 2, 5, 17, 3719])
 
 
 if __name__ == "__main__":
