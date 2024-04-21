@@ -1,7 +1,6 @@
 # Acá moví código que me ocupa lugar y no estoy usando por ahora.
 
 # TODO: Revisar qué tan mal implementé esto porque anda lentísimo jsj.
-@timer
 def criba_eratosthenes_segmentada(num: int) -> int:
     """
     Referencias:
@@ -40,7 +39,6 @@ def criba_eratosthenes_segmentada(num: int) -> int:
     return result
 
 
-@timer
 def criba_eratosthenes_rango(L: int, R: int) -> list[int]:
     lim = int(sqrt(R))
     primes = []
@@ -65,7 +63,6 @@ def criba_eratosthenes_rango(L: int, R: int) -> list[int]:
     return primes
 
 
-@timer
 def criba_eratosthenes(num: int) -> list[int]:
     """
     Referencias:
@@ -97,8 +94,6 @@ def criba_eratosthenes(num: int) -> list[int]:
     return result
 
 
-# @timer
-# def division_tentativa_serial(start, end) -> list[int]:
 def division_tentativa_serial(start, end) -> tuple[list[int], int]:
     ciclos = 0
     lista_factores = []
@@ -125,7 +120,6 @@ def division_tentativa_serial(start, end) -> tuple[list[int], int]:
     return lista_factores, ciclos
 
 
-@timer
 def division_tentativa_primos(num: int, lista_primos: list[int]) -> list[int]:
     """
     El algoritmo más básico para factorizar un entero en números primos
@@ -149,17 +143,14 @@ def division_tentativa_primos(num: int, lista_primos: list[int]) -> list[int]:
 
         ciclos += 1
 
-    if num > 1:
+    primo_mas_grande = max(lista_primos)
+    if num > primo_mas_grande:
+        factores, c = division_tentativa_serial(primo_mas_grande, num)
+        lista_factores += factores
+        print(f"Tomé {ciclos + c} ciclos")
+        return lista_factores
+    elif num != 1:
         lista_factores.append(num)
 
     return lista_factores
 
-    # print(f"Primo mas grande: {primo_mas_grande}")
-    # primo_mas_grande = max(lista_primos)
-    # if num > primo_mas_grande:
-    #     factores, c = division_tentativa_serial(primo_mas_grande, num)
-    #     lista_factores += factores
-    #     print(f"Tomé {ciclos + c} ciclos")
-    #     return lista_factores
-    # elif num != 1:
-    #     lista_factores.append(num)
