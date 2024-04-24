@@ -244,7 +244,7 @@ def sucesion_de_numeros_sociables(num: int, arr: list[int]) -> tuple[bool, list[
 
 
 @total_timer
-def main(limite: int, periodo:int):
+def main(limite: int, periodo: int):
     """
     Referencias:
     - https://djm.cc/sociable.txt
@@ -320,34 +320,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # main(args.entrada, args.periodo)
-    # mostrar_tiempos_ejecución()
-    
-    # 15  17296
-    #     18416
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(17296)))
-
-    # 16  63020
-    #     76084
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(63020)))
-
-    # 17  66928
-    #     66992
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(66928)))
-
-    # 18  67095
-    #     71145
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(67095)))
-    
-    # 19  69615
-    #     87633
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(69615)))
-
-    # 20  79750
-    #     88730
-    print(suma_de_factores_propios_factorizado(suma_de_factores_propios_factorizado(79750)))
-
-
-
-
-
+    main(args.entrada, args.periodo)
+    mostrar_tiempos_ejecución()

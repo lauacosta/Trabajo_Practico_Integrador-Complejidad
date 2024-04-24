@@ -1,4 +1,5 @@
-import time 
+import time
+
 
 class Cache(dict):
     def __init__(self, *args, **kwargs):
@@ -43,6 +44,7 @@ def timer(func):
 
 registro_tiempo = {}
 
+
 def method_total_timer(func):
     def wrapper(self, *wrapped_func_args):
         start_time = time.time()
@@ -55,6 +57,7 @@ def method_total_timer(func):
         return result
 
     return wrapper
+
 
 def total_timer(func):
     def wrapper(*wrapped_func_args):
@@ -69,6 +72,7 @@ def total_timer(func):
 
     return wrapper
 
+
 def mostrar_tiempos_ejecución(indent=0):
     print("    Tiempos de ejecución de cada función:")
     for func_name, tiempo in registro_tiempo.items():
@@ -77,7 +81,7 @@ def mostrar_tiempos_ejecución(indent=0):
 
 def format_n(n) -> str:
     if isinstance(n, int):
-        return "{0:,.{1}f}".format(n, 0).replace(',', ' ')
+        return "{0:,.{1}f}".format(n, 0).replace(",", " ")
     elif isinstance(n, float):
         return "{0:.{1}f}".format(n, 3)
 

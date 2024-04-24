@@ -1,51 +1,24 @@
 #!/usr/bin/env python
 from abc import ABC, abstractmethod
-from helpers import format_n, timer, total_timer, mostrar_tiempos_ejecución, Cache
-from math import sqrt
+from math import gcd
+from helpers import format_n, total_timer, Cache, mostrar_tiempos_ejecución
 # https://wiki.python.org/moin/TimeComplexity
+
 
 class AlgoritmoFactorizacion(ABC):
     @abstractmethod
     def factorizar(self, num: int) -> dict[int, int]:
         pass
 
+
 class DivisionTentativa(AlgoritmoFactorizacion):
     @total_timer
     def factorizar(self, num: int) -> dict[int, int]:
         """
-            El algoritmo más básico para factorizar un entero en números primos
+        El algoritmo más básico para factorizar un entero en números primos
 
-            Referencias:
-            https://cp-algorithms.com/algebra/factorization.html
-        """
-        lista_factores = {}
-        if num == 0:
-            return lista_factores
-
-        while num % 2 == 0:
-            lista_factores[2] = lista_factores.get(2, 0) + 1
-            num = num // 2
-
-        for n in range(3, num, 2):
-            if not n * n <= num:
-                break
-            while num % n == 0:
-                lista_factores[n] = lista_factores.get(n, 0) + 1
-                num //= n
-
-        if num > 1:
-            lista_factores[num] = lista_factores.get(num, 0) + 1
-
-        return lista_factores
-
-class DivisionTentativa2(AlgoritmoFactorizacion):
-    @total_timer
-    def factorizar(self, num: int) -> dict[int, int]:
-        """
-            El algoritmo más básico para factorizar un entero en números primos
-
-            Referencias:
-            https://cp-algorithms.com/algebra/factorization.html
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
         """
         lista_factores = {}
         if num == 0:
@@ -56,7 +29,6 @@ class DivisionTentativa2(AlgoritmoFactorizacion):
                 lista_factores[d] = lista_factores.get(d, 0) + 1
                 num //= d
 
-
         incrementos = [4, 2, 4, 2, 4, 6, 2, 6]
         i = 0
         d = 7
@@ -64,7 +36,7 @@ class DivisionTentativa2(AlgoritmoFactorizacion):
             while num % d == 0:
                 lista_factores[d] = lista_factores.get(d, 0) + 1
                 num //= d
-            
+
             d += incrementos[i]
             i += 1
 
@@ -76,153 +48,113 @@ class DivisionTentativa2(AlgoritmoFactorizacion):
 
         return lista_factores
 
-# TODO: TODAVIA NO FUNCIONA
-class DivisionTentativaPrimos(AlgoritmoFactorizacion):
-    def factorizar(self, num:int) -> dict[int, int]:
-        """
-        El algoritmo más básico para factorizar un entero en números primos
+class BrentPollardPrime(AlgoritmoFactorizacion):
+    @total_timer
+    def factorizar(self, num: int) -> dict[int, int]:
+        def division_tentativa(n):
+            for i in range(2, int(n**0.5) + 1):
+                if n % i == 0:
+                    return i
+            return n
 
-        Referencias:
-        https://cp-algorithms.com/algebra/factorization.html
-        """
-        lista_factores = {}
-        lista_primos = criba_eratosthenes(int(sqrt(num)))
-        if num == 0 or num == 1:
-            return lista_factores
+        if num <= 1:
+            return DivisionTentativa().factorizar(num)
+        else:
+            lista_factores = []
+            lista_factores_primos = {}
+            factor = brent_pollard(num)
+            lista_factores.append(num // factor)
+            lista_factores.append(factor)
 
-        for p in lista_primos:
-            if p * p > num:
-                break
+            while lista_factores:
+                m = lista_factores[-1]
 
-            while num % p == 0:
-                lista_factores[p] = lista_factores.get(p, 0) + 1
-                num //= p
+                lista_factores.pop()
+
+                if m == 1:
+                    continue
+
+                if miller_rabin_deterministico(m):
+                    lista_factores_primos[m] = lista_factores_primos.get(m, 0) + 1
+                    for i in range(len(lista_factores)):
+                        k = lista_factores[i]
+
+                        if k % m == 0:
+                            while True:
+                                k //= m
+                                lista_factores_primos[m] = (
+                                    lista_factores_primos.get(m, 0) + 1
+                                )
+                                if k % m != 0:
+                                    break
+                            lista_factores[i] = k
 
 
-        primo_mas_grande = max(lista_primos)
-        if num > primo_mas_grande:
-            factores = division_tentativa_serial(primo_mas_grande, num)
-            for f in factores:
-                lista_factores[f] = lista_factores.get(f, 0) + 1
+                else:
+                    factor = division_tentativa(m) if m < 100 else brent_pollard(m)
+                    lista_factores.append(m // factor)
+                    lista_factores.append(factor)
 
-            return lista_factores
-        elif num != 1:
-            lista_factores[num] = lista_factores.get(num, 0) + 1
 
-        return lista_factores
+            return lista_factores_primos
 
-# TODO: TODAVIA NO FUNCIONA
-memo_lista_primos = []
-@timer
-def criba_eratosthenes_rango(limite: int) -> list[int]:
-    """
-    Referencias:
-    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
-    """
 
-    global memo_lista_primos
 
-    if not memo_lista_primos:
-        return criba_eratosthenes(limite)
-    elif memo_lista_primos[-1] < limite:
-        lim = sqrt(int(limite))
-        marcas = [False for _ in range(limite + 1)]
-        primos = []
+@total_timer
+def brent_pollard(n, x0=2, c=1):
+    @total_timer
+    def f(x, c, mod):
+        return (mult(x, x, mod) + c) % mod
 
-        i = 2
-        while i <= lim:
-            if not marcas[i]:
-                primos.append(i)
-                j = i * i
-                while j <= lim:
-                    marcas[j] = True
-                    j += i
+
+    @total_timer
+    def mult(a, b, mod):
+        result = 0
+        while b:
+            if b & 1:
+                result = (result + a) % mod
+
+            a = (a + a) % mod
+            b >>= 1
+
+        return result
+
+    x = x0
+    g = 1
+    q = 1
+    xs = y = 0
+
+    m = 128
+    l = 1
+
+    while g == 1:
+        y = x
+        i = 1
+        while i < l:
+            x = f(x, c, n)
             i += 1
+        k = 0
+        while k < l and g == 1:
+            xs = x
+            i = 0
+            while i < m and i < l - k:
+                x = f(x, c, n)
+                q = mult(q, abs(y - x), n)
+                i += 1
+            g = gcd(q, n)
+            k += m
+        l *= 2
+    if g == n:
+        xs = f(xs, c, n)
+        g = gcd(abs(xs - y), n)
+        while g == 1:
+            xs = f(xs, c, n)
+            g = gcd(abs(xs - y), n)
 
+    return g
 
-        nuevos_primos = []
-
-        start = memo_lista_primos[-1]
-        es_primo = [True for _ in range(limite - start + 1)]
-        for p in primos:
-            j = max(p * p, start)
-            while j <= limite:
-                es_primo[j - start] = False
-                j += p
-
-        if start == 1:
-            es_primo[0] = False
-
-        for p in range(len(es_primo)):
-            if es_primo[p]:
-                nuevos_primos.append(p)
-        
-        print(f"Lista de nuevos primos desde {start} a {limite} : {nuevos_primos}")
-        memo_lista_primos += nuevos_primos
-        print(f"Nueva lista actualizada: {memo_lista_primos}")
-        return memo_lista_primos
-
-    else:
-        print(f"No hizo falta actualizar: {memo_lista_primos}")
-        return memo_lista_primos
-    
-
-
-# TODO: TODAVIA NO FUNCIONA
-def criba_eratosthenes(num: int) -> list[int]:
-    """
-    Referencias:
-    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
-    """
-    global memo_lista_primos
-    if num == 0 or num == 1:
-        return []
-
-    result = []
-    es_primo = [True for _ in range(num + 1)]
-    es_primo[0] = False
-    es_primo[1] = False
-
-    i = 2
-    while i * i <= num:
-        if es_primo[i] == True:
-            j = i * i
-            while j <= num:
-                es_primo[j] = False
-                j += i
-        i+=1
-
-    for i in range(len(es_primo)):
-        if es_primo[i]:
-            result.append(i)
-
-    print(f"lista de primos la primera vez: {result}")
-    memo_lista_primos = result
-    return memo_lista_primos
-
-def division_tentativa_serial(start, end) -> list[int]:
-    lista_factores = []
-    while end % 2 == 0:
-        print("RE LOCO")
-        lista_factores.append(2)
-        end = end // 2
-
-    for n in range(start, end, 2):
-        if not n * n <= end:
-            break
-
-        while end % n == 0:
-            lista_factores.append(n)
-            end //= n
-
-    if end > 1:
-        lista_factores.append(end)
-
-    return lista_factores
-
-
-class App():
-    def __init__(self, limite: int, periodo:int, algoritmo: AlgoritmoFactorizacion):
+class App:
+    def __init__(self, limite: int, periodo: int, algoritmo: AlgoritmoFactorizacion):
         self.limite = limite
         self.periodo = periodo
         self.algoritmo_de_factorizacion = algoritmo
@@ -239,6 +171,7 @@ class App():
         nro_sucesion = 1
         try:
             for num in range(1, self.limite + 1):
+                print(num)
                 es_candidato, sucesion = self.sucesion_de_numeros_sociables(num, [])
                 if es_candidato:
                     if len(sucesion) >= self.periodo:
@@ -255,10 +188,14 @@ class App():
 
         except KeyboardInterrupt:
             print("---------------------------------------")
-            print(f"Ejecución interrumpida, los numeros sociales hasta {format_n(actual)}:")
+            print(
+                f"Ejecución interrumpida, los numeros sociales hasta {format_n(actual)}:"
+            )
 
         finally:
-            print(f"  Elementos en el self.cache_suma_factores: {format_n(len(self.cache_suma_factores))}")
+            print(
+                f"  Elementos en el self.cache_suma_factores: {format_n(len(self.cache_suma_factores))}"
+            )
             print(f"  Cache refs: {format_n(self.cache_suma_factores.cache_refs)}")
             print(
                 f"  Cache hits: {format_n(self.cache_suma_factores.cache_hits)} ({((self.cache_suma_factores.cache_hits / self.cache_suma_factores.cache_refs) * 100):1.3f}%)"
@@ -273,15 +210,17 @@ class App():
             )
 
     @total_timer
-    def sucesion_de_numeros_sociables(self, num: int, arr: list[int]) -> tuple[bool, list[int]]:
+    def sucesion_de_numeros_sociables(
+        self, num: int, arr: list[int]
+    ) -> tuple[bool, list[int]]:
         """
-            Realiza un control de si el número es primo para así ahorrar operaciones.
+        Realiza un control de si el número es primo para así ahorrar operaciones.
 
-            De no ser primo, buscará encontrar si el número tiene una sucesión alícuota.
+        De no ser primo, buscará encontrar si el número tiene una sucesión alícuota.
 
-            Referencias:
-            - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
-            - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
+        Referencias:
+        - https://es.wikipedia.org/wiki/N%C3%BAmeros_sociables
+        - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
 
         """
         # No significa que los numeros no sean sociables sino que ya fueron mostrados por pantalla.
@@ -294,6 +233,7 @@ class App():
         if num in self.cache_numeros_sociables:
             self.cache_numeros_sociables.cache_hits += 1
             return False, arr
+
         if miller_rabin_deterministico(num):
             return False, arr
 
@@ -306,13 +246,15 @@ class App():
         return es_candidato, sucesion
 
     @total_timer
-    def construir_sucesion(self, start: int, num: int, arr: list[int]) -> tuple[bool, list[int]]:
+    def construir_sucesion(
+        self, start: int, num: int, arr: list[int]
+    ) -> tuple[bool, list[int]]:
         """
-            Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
-            de los divisores propios del término anterior, es infinita.
+        Devuelve verdadero o falso dependiendo si la sucesión, en donde cada término es la suma
+        de los divisores propios del término anterior, es infinita.
 
-            Referencias:
-            - https://djm.cc/sociable.txt
+        Referencias:
+        - https://djm.cc/sociable.txt
         """
 
         if num == 14316:
@@ -357,7 +299,6 @@ class App():
         result = int(result - num)
         self.cache_suma_factores[num] = result
         return result
-
 
 
 @total_timer
@@ -425,6 +366,7 @@ def miller_rabin_deterministico(num: int) -> bool:
 
     return True
 
+
 if __name__ == "__main__":
     import argparse
 
@@ -453,13 +395,15 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    
+
     if args.algoritmo == "division":
         App(args.entrada, args.periodo, DivisionTentativa()).run()
-    elif args.algoritmo == "division2":
-        App(args.entrada, args.periodo, DivisionTentativa2()).run()
+    elif args.algoritmo == "brent":
+        App(args.entrada, args.periodo, BrentPollardPrime()).run()
     else:
         print("algoritmo desconocido")
-    
+
+    print(DivisionTentativa().factorizar(1000000))
+    print(BrentPollardPrime().factorizar(1000000))
     mostrar_tiempos_ejecución()
-    criba_eratosthenes_rango(12451)
-    criba_eratosthenes_rango(18445)

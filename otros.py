@@ -153,4 +153,3 @@ def division_tentativa_primos(num: int, lista_primos: list[int]) -> list[int]:
         lista_factores.append(num)
 
     return lista_factores
-

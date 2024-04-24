@@ -1,0 +1,191 @@
+#!/usr/bin/env python
+from abc import ABC, abstractmethod
+from math import gcd
+
+class AlgoritmoFactorizacion(ABC):
+    @abstractmethod
+    def factorizar(self, num: int) -> tuple[dict[int, int], int]:
+        pass
+
+class DivisionTentativa(AlgoritmoFactorizacion):
+    def factorizar(self, num: int) -> tuple[dict[int, int], int]:
+        """
+            El algoritmo más básico para factorizar un entero en números primos
+
+            Referencias:
+            https://cp-algorithms.com/algebra/factorization.html
+        """
+        pasos = 0
+        lista_factores = {}
+        if num == 0:
+            return lista_factores, pasos
+
+        while num % 2 == 0:
+            lista_factores[2] = lista_factores.get(2, 0) + 1
+            num = num // 2
+            pasos += 1
+
+        for n in range(3, num, 2):
+            if not n * n <= num:
+                break
+
+            while num % n == 0:
+                lista_factores[n] = lista_factores.get(n, 0) + 1
+                num //= n
+                pasos += 1
+
+            pasos += 1
+
+        if num > 1:
+            lista_factores[num] = lista_factores.get(num, 0) + 1
+            pasos += 1
+
+        return lista_factores, pasos
+
+class DivisionTentativa2(AlgoritmoFactorizacion):
+    def factorizar(self, num: int) -> tuple[dict[int, int], int]:
+        """
+            El algoritmo más básico para factorizar un entero en números primos
+
+            Referencias:
+            https://cp-algorithms.com/algebra/factorization.html
+        """
+        pasos = 0
+        lista_factores = {}
+        if num == 0:
+            return lista_factores, pasos
+
+        for d in [2, 3, 5]:
+            while num % d == 0:
+                lista_factores[d] = lista_factores.get(d, 0) + 1
+                num //= d
+                pasos += 1
+            pasos += 1
+
+        incrementos = [4, 2, 4, 2, 4, 6, 2, 6]
+        i = 0
+        d = 7
+        while d * d <= num:
+            while num % d == 0:
+                lista_factores[d] = lista_factores.get(d, 0) + 1
+                num //= d
+                pasos += 1
+
+            pasos += 1
+            d += incrementos[i]
+            i += 1
+
+            if i == 8:
+                i = 0
+
+        if num > 1:
+            lista_factores[num] = lista_factores.get(num, 0) + 1
+            pasos += 1
+
+        return lista_factores, pasos
+
+def mult(a,b,mod):
+    result = 0
+    while b:
+        if b & 1:
+            result = (result + a) % mod
+
+        a = (a + a) % mod
+        b >>= 1
+
+    return result
+
+def f(x, c, mod):
+    return (mult(x,x,mod) + c) % mod
+
+def factorizar(n, x0=2, c=1):
+    x = x0
+    g = 1
+    q = 1
+    xs = y = 0
+
+    m = 1000
+    l = 1
+
+    while g == 1:
+        y = x
+        i = 1
+        while i < l:
+            x = f(x,c,n)
+            i +=1
+        k = 0
+        while k < l and g == 1:
+            xs = x
+            i = 0
+            while i < m and i < l - k:
+                x = f(x,c,n)
+                q = mult(q, abs(y - x), n)
+                i += 1
+            g = gcd(q,n)
+            k += m
+        l *= 2
+    if g == n:
+        xs = f(xs, c, n)
+        g = gcd(abs(xs - y), n)
+        while g == 1:
+            xs = f(xs, c, n)
+            g = gcd(abs(xs - y), n)
+
+    return g
+
+# def brent_factorizar(n: int):
+#     factors = {}
+#     while n > 1:
+#         factor = factorizar(n)
+#         factors.update(factor)
+#         while n % factor == 0:
+#             n //= factor
+
+#     return factors
+
+
+def bench(func, number:int) -> tuple[float, int]:
+    import time
+
+    start_time = time.time()
+    _, pasos = func(number)
+    end_time = time.time()
+
+    return end_time-start_time, pasos
+
+def generate_random_number_of_length(length):
+    import random
+    return int(''.join(str(random.randint(0, 9)) for _ in range(length)))
+
+def generar_lista(largos: list[int]) -> list[int]:
+    lista = []
+    for l in largos:
+        lista.append(generate_random_number_of_length(l))
+        
+    return lista
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-n",
+        "--entrada",
+        type=int,
+        default=1000000,
+        help="Determina el tamaño de la entrada, debe ser >= 12496",
+    )
+
+    args = parser.parse_args()
+
+    # print("nombre tamaño tiempo pasos")
+    # for n in generar_lista([3, 6, 9, 12]):
+    #     for _ in range(10):
+    #         tiempo, pasos = bench(DivisionTentativa().factorizar, n)
+    #         print(f"DivisionTentativa {n} {tiempo} {pasos}")
+
+    #         tiempo, pasos = bench(DivisionTentativa2().factorizar, n)
+    #         print(f"DivisionTentativa2 {n} {tiempo} {pasos}")
+    print(brent_factorizar(args.entrada))
