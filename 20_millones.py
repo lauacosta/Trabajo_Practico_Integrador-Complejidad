@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 from abc import ABC, abstractmethod
-from math import gcd
+from math import gcd, sqrt
 from helpers import format_n, total_timer, Cache, mostrar_tiempos_ejecución
 # https://wiki.python.org/moin/TimeComplexity
-
 
 class AlgoritmoFactorizacion(ABC):
     @abstractmethod
@@ -47,6 +46,47 @@ class DivisionTentativa(AlgoritmoFactorizacion):
             lista_factores[num] = lista_factores.get(num, 0) + 1
 
         return lista_factores
+
+class DivisionTentativaPrimos(AlgoritmoFactorizacion):
+    def __init__(self, lista_primos: list[int]):
+        self.lista_primos = lista_primos
+
+    @total_timer
+    def factorizar(self, num: int) -> dict[int,int]:
+        """
+        El algoritmo más básico para factorizar un entero en números primos
+
+        Referencias:
+        https://cp-algorithms.com/algebra/factorization.html
+        """
+        techo = int(sqrt(num))
+        lista_primos_efectiva = self.lista_primos[:techo]
+        lista_factores = {}
+        if num == 0 or num == 1:
+            return lista_factores
+
+        for p in lista_primos_efectiva:
+            if p * p > num:
+                break
+
+            while num % p == 0:
+                lista_factores[p] = lista_factores.get(p, 0) + 1
+                num //= p
+        
+        if num > 1:
+            lista_factores[num] = lista_factores.get(num, 0) + 1
+
+
+        # primo_mas_grande = max(lista_primos_efectiva)
+        # if num > primo_mas_grande:
+        #     factores = DivisionTentativa().factorizar(num)
+        #     lista_factores.update(factores) 
+        #     return lista_factores
+        # elif num != 1:
+        #     lista_factores[num] = lista_factores.get(num, 0) + 1
+
+        return lista_factores
+
 
 class BrentPollardPrime(AlgoritmoFactorizacion):
     @total_timer
@@ -98,7 +138,36 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
 
             return lista_factores_primos
 
+@total_timer
+def criba_eratosthenes(num: int) -> list[int]:
+    """
+    Referencias:
+    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    """
+    if num == 0 or num == 1:
+        return []
 
+    result = []
+    es_primo = [True for _ in range(num + 1)]
+    es_primo[0] = False
+    es_primo[1] = False
+    result.append(2)
+
+    # Hasta que no encuentre una mejor solución así se queda.
+    if num == 3:
+        result.append(3)
+        return result
+
+    for i in range(3, num + 1, 2):
+        if not i * i <= num:
+            break
+
+        if es_primo[i] == True:
+            result.append(i)
+            for j in range(i * i, num + 1, i * 2):
+                es_primo[j] = False
+
+    return result
 
 @total_timer
 def brent_pollard(n, x0=2, c=1):
@@ -171,7 +240,6 @@ class App:
         nro_sucesion = 1
         try:
             for num in range(1, self.limite + 1):
-                print(num)
                 es_candidato, sucesion = self.sucesion_de_numeros_sociables(num, [])
                 if es_candidato:
                     if len(sucesion) >= self.periodo:
@@ -234,8 +302,8 @@ class App:
             self.cache_numeros_sociables.cache_hits += 1
             return False, arr
 
-        if miller_rabin_deterministico(num):
-            return False, arr
+        # if miller_rabin_deterministico(num):
+        #     return False, arr
 
         arr.append(num)
         es_candidato, sucesion = self.construir_sucesion(num, num, arr)
@@ -395,15 +463,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    
-
-    if args.algoritmo == "division":
+    if args.algoritmo == "div":
         App(args.entrada, args.periodo, DivisionTentativa()).run()
+    elif args.algoritmo == "div2":
+        App(args.entrada, args.periodo, DivisionTentativaPrimos(criba_eratosthenes(args.entrada))).run()
     elif args.algoritmo == "brent":
         App(args.entrada, args.periodo, BrentPollardPrime()).run()
     else:
         print("algoritmo desconocido")
-
-    print(DivisionTentativa().factorizar(1000000))
-    print(BrentPollardPrime().factorizar(1000000))
     mostrar_tiempos_ejecución()
