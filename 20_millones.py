@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 from abc import ABC, abstractmethod
 from math import gcd, sqrt
-from helpers import format_n, total_timer, Cache, mostrar_tiempos_ejecución
+
+from helpers import Cache, format_n, mostrar_tiempos_ejecución, total_timer
+
+# MATERIAL DE INTERES:
 # https://wiki.python.org/moin/TimeComplexity
+# https://www.python.org/doc/essays/list2str/
+# https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
 
 class AlgoritmoFactorizacion(ABC):
     @abstractmethod
     def factorizar(self, num: int) -> dict[int, int]:
         pass
-
 
 class DivisionTentativa(AlgoritmoFactorizacion):
     @total_timer
@@ -47,6 +51,7 @@ class DivisionTentativa(AlgoritmoFactorizacion):
 
         return lista_factores
 
+
 class DivisionTentativaPrimos(AlgoritmoFactorizacion):
     def __init__(self, lista_primos: list[int]):
         self.lista_primos = lista_primos
@@ -76,16 +81,8 @@ class DivisionTentativaPrimos(AlgoritmoFactorizacion):
         if num > 1:
             lista_factores[num] = lista_factores.get(num, 0) + 1
 
-
-        # primo_mas_grande = max(lista_primos_efectiva)
-        # if num > primo_mas_grande:
-        #     factores = DivisionTentativa().factorizar(num)
-        #     lista_factores.update(factores) 
-        #     return lista_factores
-        # elif num != 1:
-        #     lista_factores[num] = lista_factores.get(num, 0) + 1
-
         return lista_factores
+
 
 
 class BrentPollardPrime(AlgoritmoFactorizacion):
@@ -153,7 +150,7 @@ def criba_eratosthenes(num: int) -> list[int]:
     es_primo[1] = False
     result.append(2)
 
-    # Hasta que no encuentre una mejor solución así se queda.
+    ## Hasta que no encuentre una mejor solución así se queda.
     if num == 3:
         result.append(3)
         return result
@@ -162,11 +159,12 @@ def criba_eratosthenes(num: int) -> list[int]:
         if not i * i <= num:
             break
 
-        if es_primo[i] == True:
+        if es_primo[i]:
             result.append(i)
             for j in range(i * i, num + 1, i * 2):
                 es_primo[j] = False
 
+    print(result)
     return result
 
 @total_timer
@@ -227,8 +225,10 @@ class App:
         self.limite = limite
         self.periodo = periodo
         self.algoritmo_de_factorizacion = algoritmo
-        self.cache_numeros_sociables = Cache()
         self.cache_suma_factores = Cache()
+
+        # Realmente está ad hoc para representar al único conjunto de numeros sociables de periodo 28.
+        self.numeros_sociables_especiales = set()
 
     @total_timer
     def run(self):
@@ -270,11 +270,7 @@ class App:
             )
             print("")
             print(
-                f"  Elementos en el cache_numeros_sociables: {format_n(len(self.cache_numeros_sociables))}"
-            )
-            print(f"  Cache refs: {format_n(self.cache_numeros_sociables.cache_refs)}")
-            print(
-                f"  Cache hits: {format_n(self.cache_numeros_sociables.cache_hits)} ({((self.cache_numeros_sociables.cache_hits / self.cache_numeros_sociables.cache_refs) * 100):1.3f}%)"
+                f"  Elementos en el cache_numeros_sociables: {format_n(len(self.numeros_sociables_especiales))}"
             )
 
     @total_timer
@@ -293,13 +289,10 @@ class App:
         """
         # No significa que los numeros no sean sociables sino que ya fueron mostrados por pantalla.
         # El porcentaje de hits es terriblemente bajo y por sí solo apenas reduce el tiempo de ejecución, incluso lo sube.
-        # La ventaja es que me permite determinar la maxima cantidad de iteraciones a 10 porque no evaluará
-        # El resto de numeros de la sucesión de 14316 y eso reduce muchísimo el tiempo de ejecución.
+        # La ventaja es que me permite determinar la maxima cantidad de iteraciones al construir la sucesion a 10 porque no evaluará
+        # El resto de numeros dentro de la sucesión formada por 14316 y eso reduce muchísimo el tiempo de ejecución.
         # Estaría bueno encontrar otra manera de mantener el formato de salida y la cantidad de iteraciones a 10.
-
-        self.cache_numeros_sociables.cache_refs += 1
-        if num in self.cache_numeros_sociables:
-            self.cache_numeros_sociables.cache_hits += 1
+        if num in self.numeros_sociables_especiales:
             return False, arr
 
         # if miller_rabin_deterministico(num):
@@ -309,7 +302,7 @@ class App:
         es_candidato, sucesion = self.construir_sucesion(num, num, arr)
         if es_candidato and len(sucesion) >= self.periodo:
             for n in sucesion:
-                self.cache_numeros_sociables[n] = 0
+                self.numeros_sociables_especiales.add(n)
 
         return es_candidato, sucesion
 
@@ -331,6 +324,7 @@ class App:
             max_iteraciones = 10
         while max_iteraciones != 0:
             sum = self.suma_de_factores_propios_factorizado(num)
+
             # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
             if sum == start:
                 return True, arr
@@ -434,6 +428,8 @@ def miller_rabin_deterministico(num: int) -> bool:
 
     return True
 
+def sociables(app: App):
+    app.run()
 
 if __name__ == "__main__":
     import argparse
@@ -446,7 +442,7 @@ if __name__ == "__main__":
         "--entrada",
         type=int,
         default=1000000,
-        help="Determina el tamaño de la entrada, debe ser >= 12496",
+        help="Determina el tamaño de la entrada.",
     )
     parser.add_argument(
         "-p",
@@ -464,11 +460,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.algoritmo == "div":
-        App(args.entrada, args.periodo, DivisionTentativa()).run()
+        sociables(App(args.entrada, args.periodo, DivisionTentativa()))
     elif args.algoritmo == "div2":
-        App(args.entrada, args.periodo, DivisionTentativaPrimos(criba_eratosthenes(args.entrada))).run()
+        sociables(App(args.entrada, args.periodo, DivisionTentativaPrimos(criba_eratosthenes(args.entrada))))
     elif args.algoritmo == "brent":
-        App(args.entrada, args.periodo, BrentPollardPrime()).run()
+        sociables(App(args.entrada, args.periodo, BrentPollardPrime()))
     else:
         print("algoritmo desconocido")
+
     mostrar_tiempos_ejecución()
