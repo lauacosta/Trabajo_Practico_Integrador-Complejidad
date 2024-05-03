@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 from abc import ABC, abstractmethod
 from math import gcd, sqrt
-from random import random
+
+maxim = pow(2,64) - 1
 
 
 class AlgoritmoFactorizacion(ABC):
@@ -87,10 +88,8 @@ class DivisionTentativaPrimos(AlgoritmoFactorizacion):
 
         return lista_factores, pasos
 
-class BrentPollardMinusOne(AlgoritmoFactorizacion):
+class BrentPollardPrime(AlgoritmoFactorizacion):
     def factorizar(self, num: int) -> tuple[dict[int, int], int]:
-        pasos = 0
-
         def division_tentativa(n):
             for i in range(2, int(n**0.5) + 1):
                 if n % i == 0:
@@ -102,7 +101,8 @@ class BrentPollardMinusOne(AlgoritmoFactorizacion):
         else:
             lista_factores = []
             lista_factores_primos = {}
-            factor = pollard(num, criba_eratosthenes(num))
+            factor = brent_pollard_factor(num)
+            # factor = brent_pollard(num)
             lista_factores.append(num // factor)
             lista_factores.append(factor)
 
@@ -127,81 +127,20 @@ class BrentPollardMinusOne(AlgoritmoFactorizacion):
                                 )
                                 if k % m != 0:
                                     break
+
                             lista_factores[i] = k
 
-                        pasos += 1
-
                 else:
-                    factor = (
-                        division_tentativa(m)
-                        if m < 100
-                        else pollard(m, criba_eratosthenes(m))
-                    )
+                    factor = division_tentativa(m) if m < 100 else brent_pollard_factor(m)
+                    # factor = division_tentativa(m) if m < 100 else brent_pollard(m)
                     lista_factores.append(m // factor)
                     lista_factores.append(factor)
 
-                pasos += 1
 
-            return lista_factores_primos, pasos
-
-
-class BrentPollardRho(AlgoritmoFactorizacion):
-    def factorizar(self, num: int) -> tuple[dict[int, int], int]:
-        pasos = 0
-
-        def division_tentativa(n):
-            for i in range(2, int(n**0.5) + 1):
-                if n % i == 0:
-                    return i
-            return n
-
-        if num <= 1:
-            return DivisionTentativa().factorizar(num)
-        else:
-            lista_factores = []
-            lista_factores_primos = {}
-            # factor = brent(num)
-            factor = brent_pollard(num)
-            lista_factores.append(num // factor)
-            lista_factores.append(factor)
-
-            while lista_factores:
-                m = lista_factores[-1]
-
-                lista_factores.pop()
-
-                if m == 1:
-                    continue
-
-                if miller_rabin_deterministico(m):
-                    lista_factores_primos[m] = lista_factores_primos.get(m, 0) + 1
-                    for i in range(len(lista_factores)):
-                        k = lista_factores[i]
-
-                        if k % m == 0:
-                            while True:
-                                k //= m
-                                lista_factores_primos[m] = (
-                                    lista_factores_primos.get(m, 0) + 1
-                                )
-                                if k % m != 0:
-                                    break
-                            lista_factores[i] = k
-
-                        pasos += 1
-
-                else:
-                    # factor = division_tentativa(m) if m < 100 else brent(m)
-                    factor = division_tentativa(m) if m < 100 else brent_pollard(m)
-                    lista_factores.append(m // factor)
-                    lista_factores.append(factor)
-
-                pasos += 1
-
-            return lista_factores_primos, pasos
+            return lista_factores_primos,0
 
 
-def mult(a, b, mod):
+def mult(a:int, b:int, mod:int) -> int:
     result = 0
     while b:
         if b & 1:
@@ -212,53 +151,17 @@ def mult(a, b, mod):
 
     return result
 
-def brent_pollard(n, x0=2, c=1):
-    def f(x, c, mod):
-        return (mult(x, x, mod) + c) % mod
-
-    x = x0
-    g = 1
-    q = 1
-    xs = y = 0
-
-    m = 128
-    l = 1
-
-    while g == 1:
-        y = x
-        i = 1
-        while i < l:
-            x = f(x, c, n)
-            i += 1
-        k = 0
-        while k < l and g == 1:
-            xs = x
-            i = 0
-            while i < m and i < l - k:
-                x = f(x, c, n)
-                q = mult(q, abs(y - x), n)
-                i += 1
-            g = gcd(q, n)
-            k += m
-        l *= 2
-    if g == n:
-        while True:
-            xs = f(xs, c, n)
-            g = gcd(abs(xs - y), n)
-            if g != 1:
-                break
-
-    return g
-
-max_uint64 = pow(2,64)
-def brent(n):
+def brent_pollard_factor(n: int):
+    import random
     m = 1000
-    a= x= y= ys= r= q= g = 0
+    a = x = y = ys = r= q = g = 0
+
     while True:
-        a = int(random() % n)
-        if a != 0 or a != n - 2:
+        a = int(random.randint(1, maxim))
+        a %= n
+        if not(a == 0 or a == n - 2):
             break
-    y = int(random() % n)
+    y = int(random.randint(1, maxim)) % n
     r = 1
     q = 1
 
@@ -268,47 +171,43 @@ def brent(n):
             y = mult(y,y,n)
             y += a
             if y < a:
-                y += (max_uint64 - n) + 1
+                y += (maxim -n) + 1
 
             y %= n
 
         k = 0
         while True:
             i = 0
-            while i < m and i < r-k:
+            while i < m and i < r - k:
                 ys = y
-
                 y = mult(y,y,n)
                 y += a
                 if y < a:
-                    y += (max_uint64 - n) + 1
-
+                    y += maxim - n + 1
                 y %= n
-                q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
-                i+=1
 
+                q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
+                i += 1
             g = gcd(q,n)
             k += m
-            if not k < r and g != 1:
+            if not (k < r and g == 1):
                 break
-        r <<= 1
 
+        r <<= 1
         if g != 1:
             break
 
     if g == n:
         while True:
-            ys = mult(ys, ys, n)
+            ys = mult(ys,ys,n)
             ys += a
             if ys < a:
-                ys += (max_uint64 - n) + 1
+                ys += maxim - n + 1
+
             ys %= n
-
-            g = gcd(x-ys, n) if x > ys else gcd(ys-x, n)
-
+            g = gcd(x-ys,n) if x > ys else gcd(ys-x, n)
             if g != 1:
                 break
-
     return g
 
 
@@ -396,12 +295,12 @@ def generate_random_number_of_length(length):
 
 def generar_lista(largos: list[int]) -> list[int]:
     lista = []
-    for l in largos:
-        numero = generate_random_number_of_length(l)
+    for longitud in largos:
+        numero = generate_random_number_of_length(longitud)
         while miller_rabin_deterministico(numero):
-            numero = generate_random_number_of_length(l)
+            numero = generate_random_number_of_length(longitud)
 
-        lista.append(generate_random_number_of_length(l))
+        lista.append(generate_random_number_of_length(longitud))
 
     return lista
 
@@ -480,18 +379,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print(BrentPollardRho().factorizar(64689979))
     print("nombre tamaño tiempo pasos")
     # for n in range(1, 1000000000, 1000):
-    for n in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]:
+    for n in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]:
         for _ in range(10):
             a = generar_lista([n])[0]
             tiempo, pasos = bench(DivisionTentativa().factorizar, a)
             print(f"DivisionTentativa {a} {tiempo} {pasos}")
 
-            # tiempo, pasos = bench(BrentPollardRho().factorizar, a)
-            # print(f"BrentPollardPrime {a} {tiempo} {pasos}")
+            tiempo, pasos = bench(BrentPollardPrime().factorizar, a)
+            print(f"BrentPollardPrime {a} {tiempo} {pasos}")
 
             # NO ESTA BIEN HECHO
-            tiempo, pasos = bench(DivisionTentativaPrimos(criba_eratosthenes(a)).factorizar, a)
-            print(f"DivisionTentativaPrimos {a} {tiempo} {pasos}")
+            # tiempo, pasos = bench(DivisionTentativaPrimos(criba_eratosthenes(a)).factorizar, a)
+            # print(f"DivisionTentativaPrimos {a} {tiempo} {pasos}")

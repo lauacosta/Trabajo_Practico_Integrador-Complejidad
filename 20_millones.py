@@ -8,6 +8,7 @@ from helpers import Cache, format_n, mostrar_tiempos_ejecución, total_timer
 # https://wiki.python.org/moin/TimeComplexity
 # https://www.python.org/doc/essays/list2str/
 # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
+maxim = pow(2,64) - 1
 
 class AlgoritmoFactorizacion(ABC):
     @abstractmethod
@@ -99,7 +100,8 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
         else:
             lista_factores = []
             lista_factores_primos = {}
-            factor = brent_pollard(num)
+            factor = brent_pollard_factor(num)
+            # factor = brent_pollard(num)
             lista_factores.append(num // factor)
             lista_factores.append(factor)
 
@@ -124,11 +126,12 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
                                 )
                                 if k % m != 0:
                                     break
+
                             lista_factores[i] = k
 
-
                 else:
-                    factor = division_tentativa(m) if m < 100 else brent_pollard(m)
+                    factor = division_tentativa(m) if m < 100 else brent_pollard_factor(m)
+                    # factor = division_tentativa(m) if m < 100 else brent_pollard(m)
                     lista_factores.append(m // factor)
                     lista_factores.append(factor)
 
@@ -164,61 +167,82 @@ def criba_eratosthenes(num: int) -> list[int]:
             for j in range(i * i, num + 1, i * 2):
                 es_primo[j] = False
 
-    print(result)
     return result
 
 @total_timer
-def brent_pollard(n, x0=2, c=1):
-    @total_timer
-    def f(x, c, mod):
-        return (mult(x, x, mod) + c) % mod
+def mult(a:int, b:int, mod:int) -> int:
+    result = 0
+    while b:
+        if b & 1:
+            result = (result + a) % mod
+
+        a = (a + a) % mod
+        b >>= 1
+
+    return result
 
 
-    @total_timer
-    def mult(a, b, mod):
-        result = 0
-        while b:
-            if b & 1:
-                result = (result + a) % mod
+@total_timer
+def brent_pollard_factor(n: int):
+    import random
+    m = 1000
+    a = x = y = ys = r= q = g = 0
 
-            a = (a + a) % mod
-            b >>= 1
-
-        return result
-
-    x = x0
-    g = 1
+    while True:
+        a = int(random.randint(1, maxim))
+        a %= n
+        if not(a == 0 or a == n - 2):
+            break
+    y = int(random.randint(1, maxim)) % n
+    r = 1
     q = 1
-    xs = y = 0
 
-    m = 128
-    l = 1
+    while True:
+        x = y
+        for i in range(r):
+            y = mult(y,y,n)
+            y += a
+            if y < a:
+                y += (maxim -n) + 1
 
-    while g == 1:
-        y = x
-        i = 1
-        while i < l:
-            x = f(x, c, n)
-            i += 1
+            y %= n
+
         k = 0
-        while k < l and g == 1:
-            xs = x
+        while True:
             i = 0
-            while i < m and i < l - k:
-                x = f(x, c, n)
-                q = mult(q, abs(y - x), n)
-                i += 1
-            g = gcd(q, n)
-            k += m
-        l *= 2
-    if g == n:
-        xs = f(xs, c, n)
-        g = gcd(abs(xs - y), n)
-        while g == 1:
-            xs = f(xs, c, n)
-            g = gcd(abs(xs - y), n)
+            while i < m and i < r - k:
+                ys = y
+                y = mult(y,y,n)
+                y += a
+                if y < a:
+                    y += maxim - n + 1
+                y %= n
 
+                q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
+                i += 1
+            g = gcd(q,n)
+            k += m
+            if not (k < r and g == 1):
+                break
+
+        r <<= 1
+        if g != 1:
+            break
+
+    if g == n:
+        while True:
+            ys = mult(ys,ys,n)
+            ys += a
+            if ys < a:
+                ys += maxim - n + 1
+
+            ys %= n
+            g = gcd(x-ys,n) if x > ys else gcd(ys-x, n)
+            if g != 1:
+                break
     return g
+
+
 
 class App:
     def __init__(self, limite: int, periodo: int, algoritmo: AlgoritmoFactorizacion):
@@ -227,8 +251,8 @@ class App:
         self.algoritmo_de_factorizacion = algoritmo
         self.cache_suma_factores = Cache()
 
-        # Realmente está ad hoc para representar al único conjunto de numeros sociables de periodo 28.
-        self.numeros_sociables_especiales = set()
+        # Realmente está ad hoc para representar al conjunto de numeros sociables de que ya aparecieron.
+        self.numeros_sociables_vistos = set()
 
     @total_timer
     def run(self):
@@ -270,7 +294,7 @@ class App:
             )
             print("")
             print(
-                f"  Elementos en el cache_numeros_sociables: {format_n(len(self.numeros_sociables_especiales))}"
+                f"  Elementos en el cache_numeros_sociables: {format_n(len(self.numeros_sociables_vistos))}"
             )
 
     @total_timer
@@ -292,17 +316,17 @@ class App:
         # La ventaja es que me permite determinar la maxima cantidad de iteraciones al construir la sucesion a 10 porque no evaluará
         # El resto de numeros dentro de la sucesión formada por 14316 y eso reduce muchísimo el tiempo de ejecución.
         # Estaría bueno encontrar otra manera de mantener el formato de salida y la cantidad de iteraciones a 10.
-        if num in self.numeros_sociables_especiales:
+        if num in self.numeros_sociables_vistos:
             return False, arr
 
-        # if miller_rabin_deterministico(num):
-        #     return False, arr
+        if miller_rabin_deterministico(num):
+            return False, arr
 
         arr.append(num)
         es_candidato, sucesion = self.construir_sucesion(num, num, arr)
         if es_candidato and len(sucesion) >= self.periodo:
             for n in sucesion:
-                self.numeros_sociables_especiales.add(n)
+                self.numeros_sociables_vistos.add(n)
 
         return es_candidato, sucesion
 

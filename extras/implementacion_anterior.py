@@ -287,6 +287,45 @@ def main(limite: int, periodo: int):
             f"  Cache hits: {cache_numeros_sociables.cache_hits} ({((cache_numeros_sociables.cache_hits / cache_numeros_sociables.cache_refs) * 100):1.3f} %)"
         )
 
+@total_timer
+def brent_pollard(n, x0=2, c=1):
+    @total_timer
+    def f(x: int, c: int, mod: int) -> int:
+        return (mult(x, x, mod) + c) % mod
+
+    x = x0
+    g = 1
+    q = 1
+    xs = y = 0
+
+    m = 128
+    l = 1
+
+    while g == 1:
+        y = x
+        i = 1
+        while i < l:
+            x = f(x, c, n)
+            i += 1
+        k = 0
+        while k < l and g == 1:
+            xs = x
+            i = 0
+            while i < m and i < l - k:
+                x = f(x, c, n)
+                q = mult(q, abs(y - x), n)
+                i += 1
+            g = gcd(q, n)
+            k += m
+        l *= 2
+    if g == n:
+        xs = f(xs, c, n)
+        g = gcd(abs(xs - y), n)
+        while g == 1:
+            xs = f(xs, c, n)
+            g = gcd(abs(xs - y), n)
+
+    return g
 
 def control(n):
     n = int(n)

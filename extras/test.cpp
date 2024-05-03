@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <numeric>
+#include <unordered_map>
 #include <vector>
 
 using u64 = uint64_t;
@@ -61,6 +62,43 @@ long long mult(long long a, long long b, long long mod) {
     b >>= 1;
   }
   return result;
+}
+
+long long f(long long x, long long c, long long mod) {
+  return (mult(x, x, mod) + c) % mod;
+}
+
+long long brent(long long n, long long x0 = 2, long long c = 1) {
+  long long x = x0;
+  long long g = 1;
+  long long q = 1;
+  long long xs, y;
+
+  int m = 128;
+  int l = 1;
+  while (g == 1) {
+    y = x;
+    for (int i = 1; i < l; i++)
+      x = f(x, c, n);
+    int k = 0;
+    while (k < l && g == 1) {
+      xs = x;
+      for (int i = 0; i < m && i < l - k; i++) {
+        x = f(x, c, n);
+        q = mult(q, std::abs(y - x), n);
+      }
+      g = std::gcd(q, n);
+      k += m;
+    }
+    l *= 2;
+  }
+  if (g == n) {
+    do {
+      xs = f(xs, c, n);
+      g = std::gcd(std::abs(xs - y), n);
+    } while (g == 1);
+  }
+  return g;
 }
 
 uint64_t brent_pollard_factor(uint64_t n) {
@@ -137,10 +175,20 @@ int division_tentativa(int n) {
   return n;
 }
 
-std::vector<uint64_t> prime_factors(uint64_t n) {
-  std::vector<uint64_t> factors;
-  std::vector<uint64_t> primes;
+void update_map(uint64_t key, std::unordered_map<uint64_t, uint64_t> &map) {
+  if (map.find(key) != map.end()) {
+    map[key]++;
+  } else {
+    map[key] = 1;
+  }
+}
 
+std::unordered_map<uint64_t, uint64_t> prime_factors(uint64_t n) {
+  std::unordered_map<uint64_t, uint64_t> primes;
+  /* std::vector<uint64_t> factors; */
+  std::vector<uint64_t> factors;
+
+  /* uint64_t factor = brent(n); */
   uint64_t factor = brent_pollard_factor(n);
   factors.push_back(n / factor);
   factors.push_back(factor);
@@ -153,19 +201,22 @@ std::vector<uint64_t> prime_factors(uint64_t n) {
       continue;
 
     if (MillerRabin(m)) {
-      primes.push_back(m);
+      update_map(m, primes);
 
       // Remove the prime from the other factors
       for (int i = 0; i < factors.size(); i++) {
         uint64_t k = factors[i];
         if (k % m == 0) {
-          do
+          do {
             k /= m;
-          while (k % m == 0);
+            update_map(m, primes);
+          } while (k % m == 0);
+
           factors[i] = k;
         }
       }
     } else {
+      /* factor = (m < 100) ? division_tentativa(m) : brent(m); */
       factor = (m < 100) ? division_tentativa(m) : brent_pollard_factor(m);
       factors.push_back(m / factor);
       factors.push_back(factor);
@@ -176,15 +227,12 @@ std::vector<uint64_t> prime_factors(uint64_t n) {
 }
 
 int main() {
-  std::vector<uint64_t> result = prime_factors(64689979);
+  std::unordered_map<uint64_t, uint64_t> result = prime_factors(646899790);
 
+  printf("{");
   for (auto i : result)
-    printf("%lu", i);
-
-  result = prime_factors(646899790);
-  for (auto i : result)
-    printf("----------------------------------------------------------\n%lu\n",
-           i);
+    printf("%lu:%lu ,", i.first, i.second);
+  printf("}");
 
   return 0;
 }
