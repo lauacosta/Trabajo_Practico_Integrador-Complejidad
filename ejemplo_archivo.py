@@ -1,13 +1,53 @@
-#!/usr/bin/env python
+#from decorators import delta_time
+#@delta_time("GRUPO GN2")
+
+'''
+ANTES DE CUALQUIER COSA, DIGITAR EN CONSOLA ------>"python ejemplo_archivo.py -h"<------
+CAMBIAR @total_timer por @delta_time
+'''
+
 from abc import ABC, abstractmethod
 from math import gcd, sqrt
 
-from helpers import Cache, format_n, mostrar_tiempos_ejecución, total_timer
+import time
+class Cache(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.contador_accesos = {}
+        self.cache_hits = 0
+        self.cache_refs = 0
 
-# MATERIAL DE INTERES:
-# https://wiki.python.org/moin/TimeComplexity
-# https://www.python.org/doc/essays/list2str/
-# https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
+    def __getitem__(self, key):
+        self.cache_hits += 1
+        self.contador_accesos[key] = self.contador_accesos.get(key, 0) + 1
+        return super().__getitem__(key)
+    
+def format_n(n) -> str:
+    if isinstance(n, int):
+        return "{0:,.{1}f}".format(n, 0).replace(",", " ")
+    elif isinstance(n, float):
+        return "{0:.{1}f}".format(n, 3)
+
+    return "invalid number"
+
+## ABAJO NUESTRO DECORADOR
+
+def func_name(func):
+    return str(func).split(" ")[1]
+
+registro_tiempo={}
+def total_timer(func):
+    def wrapper(*wrapped_func_args):
+        start_time = time.time()
+        result = func(*wrapped_func_args)
+        end_time = time.time()
+
+        registro_tiempo[func_name(func)] = registro_tiempo.get(func_name(func), 0) + (
+            end_time - start_time
+        )
+        return result
+    return wrapper
+
 maxim = pow(2,64) - 1
 
 class AlgoritmoFactorizacion(ABC):
@@ -489,4 +529,4 @@ if __name__ == "__main__":
     else:
         print("algoritmo desconocido")
 
-    mostrar_tiempos_ejecución()
+    #mostrar_tiempos_ejecución()
