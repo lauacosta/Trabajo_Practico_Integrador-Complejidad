@@ -84,8 +84,6 @@ class DivisionTentativaPrimos(AlgoritmoFactorizacion):
 
         return lista_factores
 
-
-
 class BrentPollardPrime(AlgoritmoFactorizacion):
     @total_timer
     def factorizar(self, num: int) -> dict[int, int]:
@@ -183,7 +181,6 @@ def mult(a:int, b:int, mod:int) -> int:
         b >>= 1
 
     return result
-
 
 @total_timer
 def brent_pollard_factor(n: int):
@@ -482,7 +479,7 @@ if __name__ == "__main__":
     elif args.algoritmo == "div2":
         sociables(App(args.entrada, args.periodo, DivisionTentativaPrimos(criba_eratosthenes(args.entrada))))
     elif args.algoritmo == "brent":
-        sociables(App(args.entrada, args.periodo, BrentPollardPrime()))
+        sociables(App(args.entrada, args.periodo, BrentPollardPrime())) 
     else:
         print("algoritmo desconocido")
 
