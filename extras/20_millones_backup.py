@@ -248,7 +248,7 @@ def brent_pollard_factor(n: int):
 
 
 class App:
-    def __init__(self, limite: int, periodo: list[int], algoritmo: AlgoritmoFactorizacion):
+    def __init__(self, limite: int, periodo: int, algoritmo: AlgoritmoFactorizacion):
         self.limite = limite
         self.periodo = periodo
         self.algoritmo_de_factorizacion = algoritmo
@@ -268,14 +268,14 @@ class App:
         try:
             for num in range(1, self.limite + 1):
                 es_candidato, sucesion = self.sucesion_de_numeros_sociables(num, [])
-                if es_candidato:
-                    if len(sucesion) in self.periodo:
-                        print(f"{format_n(nro_sucesion):2}  {format_n(sucesion[0]):6}")
-                        for n in sucesion[1:]:
-                            print(f"    {format_n(n)}")
+                # if es_candidato:
+                #     if len(sucesion) >= self.periodo:
+                #         print(f"{format_n(nro_sucesion):2}  {format_n(sucesion[0]):6}")
+                #         for n in sucesion[1:]:
+                #             print(f"    {format_n(n)}")
 
-                        print("")
-                        nro_sucesion += 1
+                #         print("")
+                #         nro_sucesion += 1
                 actual = num
 
             print("---------------------------------------")
@@ -314,12 +314,20 @@ class App:
         - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
 
         """
+        # No significa que los numeros no sean sociables sino que ya fueron mostrados por pantalla.
+        # El porcentaje de hits es terriblemente bajo y por sí solo apenas reduce el tiempo de ejecución, incluso lo sube.
+        # La ventaja es que me permite determinar la maxima cantidad de iteraciones al construir la sucesion a 10 porque no evaluará
+        # El resto de numeros dentro de la sucesión formada por 14316 y eso reduce muchísimo el tiempo de ejecución.
+        # Estaría bueno encontrar otra manera de mantener el formato de salida y la cantidad de iteraciones a 10.
         if num in self.numeros_sociables_vistos:
             return False, arr
 
+        # if miller_rabin_deterministico(num):
+        #     return False, arr
+
         arr.append(num)
         es_candidato, sucesion = self.construir_sucesion(num, num, arr)
-        if es_candidato and len(sucesion) in self.periodo:
+        if es_candidato and len(sucesion) >= self.periodo:
             for n in sucesion:
                 self.numeros_sociables_vistos.add(n)
 
@@ -337,19 +345,18 @@ class App:
         - https://djm.cc/sociable.txt
         """
 
-        # if num == 14316:
-        #     max_iteraciones = 30
-        # else:
-        #     max_iteraciones = 10
-        max_iteraciones = self.periodo[-1]
+        if num == 14316:
+            max_iteraciones = 30
+        else:
+            max_iteraciones = 10
         while max_iteraciones != 0:
             sum = self.suma_de_factores_propios_factorizado(num)
 
-            # Significa que se cumplió el periodo, entonces devuelvo la lista.
+            # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
             if sum == start:
                 return True, arr
 
-            # Detecta si una secuencia se vuelve cíclica pero no respecto al primer número.
+            # Para detectar si una secuencia se vuelve cíclica pero no respecto al primer número.
             if sum in arr:
                 return False, arr
 
@@ -374,8 +381,12 @@ class App:
             return self.cache_suma_factores[num]
 
         factores = self.algoritmo_de_factorizacion.factorizar(num)
-        serie = [(pow(n, e + 1) - 1) // (n - 1) for n, e in factores.items()]
-        result = prod(serie) - num
+        result = prod((pow(n, e + 1) - 1) // (n - 1) for n, e in factores.items())
+        # result = 1
+        # for n, e in factores.items():
+        #     result *= (pow(n, e + 1) - 1) / (n - 1)
+
+        result = result - num
         self.cache_suma_factores[num] = result
         return result
 
@@ -464,9 +475,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--periodo",
-        nargs='+',
         type=int,
-        default=[1,2,4,5],
+        default=1,
         help="Determina el periodo a buscar.",
     )
     parser.add_argument(

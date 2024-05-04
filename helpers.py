@@ -3,15 +3,14 @@ import time
 class Cache(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.contador_accesos = {}
+        # self.contador_accesos = {}
         self.cache_hits = 0
         self.cache_refs = 0
 
     def __getitem__(self, key):
         self.cache_hits += 1
-        self.contador_accesos[key] = self.contador_accesos.get(key, 0) + 1
+        # self.contador_accesos[key] = self.contador_accesos.get(key, 0) + 1
         return super().__getitem__(key)
-
 
 def time_interval(interval):
     if interval < 0.001:
@@ -42,8 +41,6 @@ def timer(func):
 
 
 registro_tiempo = {}
-
-
 def method_total_timer(func):
     def wrapper(self, *wrapped_func_args):
         start_time = time.time()

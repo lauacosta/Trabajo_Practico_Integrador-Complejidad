@@ -1,14 +1,54 @@
-#!/usr/bin/env python
+#from decorators import delta_time
+#@delta_time("GRUPO GN2")
+
+'''
+ANTES DE CUALQUIER COSA, DIGITAR EN CONSOLA ------>"python ejemplo_archivo.py -h"<------
+CAMBIAR @total_timer por @delta_time
+'''
+
 from abc import ABC, abstractmethod
-from math import gcd, sqrt, prod
-from helpers import total_timer, mostrar_tiempos_ejecución, format_n, Cache
+from math import gcd, sqrt
 
-# MATERIAL DE INTERES:
-# https://wiki.python.org/moin/TimeComplexity
-# https://www.python.org/doc/essays/list2str/
-# https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
+import time
+class Cache(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.contador_accesos = {}
+        self.cache_hits = 0
+        self.cache_refs = 0
 
-max_uint64 = pow(2,64) - 1
+    def __getitem__(self, key):
+        self.cache_hits += 1
+        self.contador_accesos[key] = self.contador_accesos.get(key, 0) + 1
+        return super().__getitem__(key)
+    
+def format_n(n) -> str:
+    if isinstance(n, int):
+        return "{0:,.{1}f}".format(n, 0).replace(",", " ")
+    elif isinstance(n, float):
+        return "{0:.{1}f}".format(n, 3)
+
+    return "invalid number"
+
+## ABAJO NUESTRO DECORADOR
+
+def func_name(func):
+    return str(func).split(" ")[1]
+
+registro_tiempo={}
+def total_timer(func):
+    def wrapper(*wrapped_func_args):
+        start_time = time.time()
+        result = func(*wrapped_func_args)
+        end_time = time.time()
+
+        registro_tiempo[func_name(func)] = registro_tiempo.get(func_name(func), 0) + (
+            end_time - start_time
+        )
+        return result
+    return wrapper
+
+maxim = pow(2,64) - 1
 
 class AlgoritmoFactorizacion(ABC):
     @abstractmethod
@@ -84,8 +124,6 @@ class DivisionTentativaPrimos(AlgoritmoFactorizacion):
 
         return lista_factores
 
-
-
 class BrentPollardPrime(AlgoritmoFactorizacion):
     @total_timer
     def factorizar(self, num: int) -> dict[int, int]:
@@ -98,14 +136,10 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
         if num <= 1:
             return DivisionTentativa().factorizar(num)
         else:
-
             lista_factores = []
             lista_factores_primos = {}
-
-            if miller_rabin_deterministico(num):
-                return lista_factores_primos
-
             factor = brent_pollard_factor(num)
+            # factor = brent_pollard(num)
             lista_factores.append(num // factor)
             lista_factores.append(factor)
 
@@ -135,6 +169,7 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
 
                 else:
                     factor = division_tentativa(m) if m < 100 else brent_pollard_factor(m)
+                    # factor = division_tentativa(m) if m < 100 else brent_pollard(m)
                     lista_factores.append(m // factor)
                     lista_factores.append(factor)
 
@@ -184,7 +219,6 @@ def mult(a:int, b:int, mod:int) -> int:
 
     return result
 
-
 @total_timer
 def brent_pollard_factor(n: int):
     import random
@@ -192,11 +226,11 @@ def brent_pollard_factor(n: int):
     a = x = y = ys = r= q = g = 0
 
     while True:
-        a = int(random.randint(1, max_uint64))
+        a = int(random.randint(1, maxim))
         a %= n
         if not(a == 0 or a == n - 2):
             break
-    y = int(random.randint(1, max_uint64)) % n
+    y = int(random.randint(1, maxim)) % n
     r = 1
     q = 1
 
@@ -206,7 +240,7 @@ def brent_pollard_factor(n: int):
             y = mult(y,y,n)
             y += a
             if y < a:
-                y += (max_uint64 -n) + 1
+                y += (maxim -n) + 1
 
             y %= n
 
@@ -218,7 +252,7 @@ def brent_pollard_factor(n: int):
                 y = mult(y,y,n)
                 y += a
                 if y < a:
-                    y += max_uint64 - n + 1
+                    y += maxim - n + 1
                 y %= n
 
                 q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
@@ -237,7 +271,7 @@ def brent_pollard_factor(n: int):
             ys = mult(ys,ys,n)
             ys += a
             if ys < a:
-                ys += max_uint64 - n + 1
+                ys += maxim - n + 1
 
             ys %= n
             g = gcd(x-ys,n) if x > ys else gcd(ys-x, n)
@@ -248,7 +282,7 @@ def brent_pollard_factor(n: int):
 
 
 class App:
-    def __init__(self, limite: int, periodo: list[int], algoritmo: AlgoritmoFactorizacion):
+    def __init__(self, limite: int, periodo: int, algoritmo: AlgoritmoFactorizacion):
         self.limite = limite
         self.periodo = periodo
         self.algoritmo_de_factorizacion = algoritmo
@@ -269,7 +303,7 @@ class App:
             for num in range(1, self.limite + 1):
                 es_candidato, sucesion = self.sucesion_de_numeros_sociables(num, [])
                 if es_candidato:
-                    if len(sucesion) in self.periodo:
+                    if len(sucesion) >= self.periodo:
                         print(f"{format_n(nro_sucesion):2}  {format_n(sucesion[0]):6}")
                         for n in sucesion[1:]:
                             print(f"    {format_n(n)}")
@@ -314,12 +348,20 @@ class App:
         - https://es.wikipedia.org/wiki/Sucesi%C3%B3n_al%C3%ADcuota
 
         """
+        # No significa que los numeros no sean sociables sino que ya fueron mostrados por pantalla.
+        # El porcentaje de hits es terriblemente bajo y por sí solo apenas reduce el tiempo de ejecución, incluso lo sube.
+        # La ventaja es que me permite determinar la maxima cantidad de iteraciones al construir la sucesion a 10 porque no evaluará
+        # El resto de numeros dentro de la sucesión formada por 14316 y eso reduce muchísimo el tiempo de ejecución.
+        # Estaría bueno encontrar otra manera de mantener el formato de salida y la cantidad de iteraciones a 10.
         if num in self.numeros_sociables_vistos:
+            return False, arr
+
+        if miller_rabin_deterministico(num):
             return False, arr
 
         arr.append(num)
         es_candidato, sucesion = self.construir_sucesion(num, num, arr)
-        if es_candidato and len(sucesion) in self.periodo:
+        if es_candidato and len(sucesion) >= self.periodo:
             for n in sucesion:
                 self.numeros_sociables_vistos.add(n)
 
@@ -337,19 +379,18 @@ class App:
         - https://djm.cc/sociable.txt
         """
 
-        # if num == 14316:
-        #     max_iteraciones = 30
-        # else:
-        #     max_iteraciones = 10
-        max_iteraciones = self.periodo[-1]
+        if num == 14316:
+            max_iteraciones = 30
+        else:
+            max_iteraciones = 10
         while max_iteraciones != 0:
             sum = self.suma_de_factores_propios_factorizado(num)
 
-            # Significa que se cumplió el periodo, entonces devuelvo la lista.
+            # Si es así, significa que se cumplió el periodo, entonces devuelvo la lista.
             if sum == start:
                 return True, arr
 
-            # Detecta si una secuencia se vuelve cíclica pero no respecto al primer número.
+            # Para detectar si una secuencia se vuelve cíclica pero no respecto al primer número.
             if sum in arr:
                 return False, arr
 
@@ -374,8 +415,11 @@ class App:
             return self.cache_suma_factores[num]
 
         factores = self.algoritmo_de_factorizacion.factorizar(num)
-        serie = [(pow(n, e + 1) - 1) // (n - 1) for n, e in factores.items()]
-        result = prod(serie) - num
+        result = 1
+        for n, e in factores.items():
+            result *= (pow(n, e + 1) - 1) / (n - 1)
+
+        result = int(result - num)
         self.cache_suma_factores[num] = result
         return result
 
@@ -464,9 +508,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--periodo",
-        nargs='+',
         type=int,
-        default=[1,2,4,5],
+        default=1,
         help="Determina el periodo a buscar.",
     )
     parser.add_argument(
@@ -482,8 +525,8 @@ if __name__ == "__main__":
     elif args.algoritmo == "div2":
         sociables(App(args.entrada, args.periodo, DivisionTentativaPrimos(criba_eratosthenes(args.entrada))))
     elif args.algoritmo == "brent":
-        sociables(App(args.entrada, args.periodo, BrentPollardPrime()))
+        sociables(App(args.entrada, args.periodo, BrentPollardPrime())) 
     else:
         print("algoritmo desconocido")
 
-    mostrar_tiempos_ejecución()
+    #mostrar_tiempos_ejecución()
