@@ -8,64 +8,6 @@ from helpers import Cache, format_n, total_timer, mostrar_tiempos_ejecución
 # https://www.python.org/doc/essays/list2str/
 # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
 
-max_uint64: int = pow(2,64) - 1
-
-    #@total_timer
-def DivisionTentativa(num: int, lista_primos: list[int]) -> dict[int,int]:
-    """
-    El algoritmo más básico para factorizar un entero en números primos
-
-    Referencias:
-    https://cp-algorithms.com/algebra/factorization.html
-    """
-    lista_factores: dict[int,int] = {}
-    if num == 0 or num == 1:
-        return lista_factores
-
-    for p in lista_primos:
-        if p * p > num:
-            break
-
-        while num % p == 0:
-            lista_factores[p] = lista_factores.get(p, 0) + 1
-            num //= p
-    
-    if num > 1:
-        lista_factores[num] = lista_factores.get(num, 0) + 1
-
-    return lista_factores
-
-#@total_timer
-def criba_eratosthenes(num: int) -> list[int]:
-    """
-    Referencias:
-    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
-    """
-    if num == 0 or num == 1:
-        return []
-
-    resultado: list[int] = []
-    es_primo = [True for _ in range(num + 1)]
-    es_primo[0] = False
-    es_primo[1] = False
-    resultado.append(2)
-
-    ## Hasta que no encuentre una mejor solución así se queda.
-    if num == 3:
-        resultado.append(3)
-        return resultado
-
-    for i in range(3, num + 1, 2):
-        if not i * i <= num:
-            break
-
-        if es_primo[i]:
-            resultado.append(i)
-            for j in range(i * i, num + 1, i * 2):
-                es_primo[j] = False
-
-    return resultado
-
 class App:
     def __init__(self, limite: int, periodo: list[int], lista_primos: list[int]):
         self.limite = limite
@@ -192,6 +134,63 @@ class App:
         for info in informacion:
             print(info)
 
+
+# @total_timer
+def DivisionTentativa(num: int, lista_primos: list[int]) -> dict[int,int]:
+    """
+    El algoritmo más básico para factorizar un entero en números primos
+
+    Referencias:
+    https://cp-algorithms.com/algebra/factorization.html
+    """
+    lista_factores: dict[int,int] = {}
+    if num == 0 or num == 1:
+        return lista_factores
+
+    for p in lista_primos:
+        if p * p > num:
+            break
+
+        while num % p == 0:
+            lista_factores[p] = lista_factores.get(p, 0) + 1
+            num //= p
+    
+    if num > 1:
+        lista_factores[num] = lista_factores.get(num, 0) + 1
+
+    return lista_factores
+
+# @total_timer
+def criba_eratosthenes(num: int) -> list[int]:
+    """
+    Encuentra todos los números primos menores a un número natural dado.
+    Referencias:
+    - https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    """
+    if num == 0 or num == 1:
+        return []
+
+    resultado: list[int] = []
+    es_primo = [True for _ in range(num + 1)]
+    es_primo[0] = False
+    es_primo[1] = False
+    resultado.append(2)
+
+    ## Hasta que no encuentre una mejor solución así se queda.
+    if num == 3:
+        resultado.append(3)
+        return resultado
+
+    for i in range(3, num + 1, 2):
+        if not i * i <= num:
+            break
+
+        if es_primo[i]:
+            resultado.append(i)
+            for j in range(i * i, num + 1, i * 2):
+                es_primo[j] = False
+
+    return resultado
 
 def sociables(app: App):
     app.run()

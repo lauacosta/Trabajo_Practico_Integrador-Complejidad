@@ -1,7 +1,9 @@
+from miller_rabin_test import miller_rabin_deterministico
+from math import gcd
 
-class BrentPollardPrime(AlgoritmoFactorizacion):
+max_uint64: int = pow(2,64) - 1
+class BrentPollardPrime():
     #@total_timer
-    @override
     def factorizar(self, num: int) -> dict[int, int]:
         def division_tentativa(n: int) -> int:
             for i in range(2, n + 1):
