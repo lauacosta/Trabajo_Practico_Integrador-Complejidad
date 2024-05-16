@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from math import prod
 
-from helpers import Cache, format_n, total_timer, mostrar_tiempos_ejecución
+from helpers import Cache, total_timer, mostrar_tiempos_ejecución
 
 # MATERIAL DE INTERES:
 # https://wiki.python.org/moin/TimeComplexity
@@ -26,26 +26,33 @@ class App:
         """
         actual = 0
         nro_sucesion = 1
+        paso = 1
+
+        if self.periodo == [1]:
+            paso = 2
+
         try:
-            for num in range(1, self.limite + 1):
-                es_candidato, sucesion = self.sucesion_de_numeros_sociables(num, [])
+            sucesion_de_numeros_sociables = self.sucesion_de_numeros_sociables
+            for num in range(6, self.limite + 1, paso):
+                es_candidato, sucesion = sucesion_de_numeros_sociables(num, [])
                 if es_candidato:
                     if len(sucesion) in self.periodo:
-                        print(f"{format_n(nro_sucesion):2}  {format_n(sucesion[0]):6}")
-                        for n in sucesion[1:]:
-                            print(f"    {format_n(n)}")
-
-                        print("")
+                        secuencia = (
+                            "      {0:,.{1}f}\n".format(n, 0).replace(",", " ")
+                            for n in sucesion
+                        )
+                        print("".join(secuencia))
                         nro_sucesion += 1
                 actual = num
 
-            self.mostrar_informacion(f"Los numeros sociales hasta {format_n(actual)}:")
+
+            self.mostrar_informacion(f"Los numeros sociales hasta {(actual)}:")
         except KeyboardInterrupt:
             self.mostrar_informacion(
-                f"Ejecución interrumpida, los numeros sociales hasta {format_n(actual)}:"
+                f"Ejecución interrumpida, los numeros sociales hasta {(actual)}:"
             )
 
-    #@total_timer
+    # @total_timer
     def sucesion_de_numeros_sociables(
         self, num: int, arr: list[int]
     ) -> tuple[bool, list[int]]:
@@ -67,12 +74,10 @@ class App:
         if es_candidato and len(sucesion) in self.periodo:
             for n in sucesion:
                 self.numeros_sociables_vistos.add(n)
-            # add = self.numeros_sociables_vistos.add
-            # map(add, sucesion)
 
         return es_candidato, sucesion
 
-    #@total_timer
+    # @total_timer
     def construir_sucesion(
         self, start: int, num: int, arr: list[int]
     ) -> tuple[bool, list[int]]:
@@ -84,7 +89,12 @@ class App:
         - https://djm.cc/sociable.txt
         """
 
-        max_iteraciones = self.periodo[-1]
+        if num == 14316 and 28 in self.periodo:
+            max_iteraciones = 28
+        else:
+            max_iteraciones = 5
+
+        append = arr.append
         while max_iteraciones != 0:
             sum = self.suma_de_factores_propios_factorizado(num)
 
@@ -96,13 +106,13 @@ class App:
             if sum in arr:
                 return False, arr
 
-            arr.append(sum)
+            append(sum)
             num = sum
             max_iteraciones -= 1
 
         return False, arr
 
-    #@total_timer
+    # @total_timer
     def suma_de_factores_propios_factorizado(self, num: int) -> int:
         """
         1) Obtener los factores a través de una tecnica de factorización.
@@ -124,26 +134,27 @@ class App:
 
     def mostrar_informacion(self, titulo: str):
         informacion: list[str] = [
-            titulo,
-            f"  Elementos en el self.cache_suma_factores: {format_n(len(self.cache_suma_factores))}",
-            f"  Cache refs: {format_n(self.cache_suma_factores.cache_refs)}",
-            f"  Cache hits: {format_n(self.cache_suma_factores.cache_hits)} ({((self.cache_suma_factores.cache_hits / self.cache_suma_factores.cache_refs) * 100):1.3f}%)",
-            f"  Elementos en el cache_numeros_sociables: {format_n(len(self.numeros_sociables_vistos))}"
+            "-----------------------------------------------------------\n",
+            f"{titulo}\n",
+            f"  Elementos en el self.cache_suma_factores: {len(self.cache_suma_factores)}\n",
+            f"  Cache refs: {(self.cache_suma_factores.cache_refs)}\n",
+            f"  Cache hits: {(self.cache_suma_factores.cache_hits)} ({((self.cache_suma_factores.cache_hits / self.cache_suma_factores.cache_refs) * 100):1.3f}%)\n",
+            f"  Elementos en el cache_numeros_sociables: {(len(self.numeros_sociables_vistos))}\n",
         ]
 
-        for info in informacion:
-            print(info)
+        print("".join(informacion))
 
 
 # @total_timer
-def DivisionTentativa(num: int, lista_primos: list[int]) -> dict[int,int]:
+def DivisionTentativa(num: int, lista_primos: list[int]) -> dict[int, int]:
     """
     El algoritmo más básico para factorizar un entero en números primos
 
     Referencias:
     https://cp-algorithms.com/algebra/factorization.html
     """
-    lista_factores: dict[int,int] = {}
+    lista_factores: dict[int, int] = {}
+    get = lista_factores.get
     if num == 0 or num == 1:
         return lista_factores
 
@@ -152,13 +163,14 @@ def DivisionTentativa(num: int, lista_primos: list[int]) -> dict[int,int]:
             break
 
         while num % p == 0:
-            lista_factores[p] = lista_factores.get(p, 0) + 1
+            lista_factores[p] = get(p, 0) + 1
             num //= p
-    
+
     if num > 1:
-        lista_factores[num] = lista_factores.get(num, 0) + 1
+        lista_factores[num] = get(num, 0) + 1
 
     return lista_factores
+
 
 # @total_timer
 def criba_eratosthenes(num: int) -> list[int]:
@@ -192,8 +204,10 @@ def criba_eratosthenes(num: int) -> list[int]:
 
     return resultado
 
+
 def sociables(app: App):
     app.run()
+
 
 if __name__ == "__main__":
     import argparse
@@ -211,9 +225,9 @@ if __name__ == "__main__":
     _ = parser.add_argument(
         "-p",
         "--periodo",
-        nargs='+',
+        nargs="+",
         type=int,
-        default=[1,2,4,5],
+        default=[1, 2, 4, 5],
         help="Determina el periodo a buscar.",
     )
     args = parser.parse_args()

@@ -31,6 +31,7 @@ class App:
         comienzo = 6
         paso = 1
         fin = self.limite
+        append = resultado.append
 
         # Algunos casos especiales:
         if self.periodo == [1]:
@@ -48,7 +49,7 @@ class App:
         for num in range(comienzo, fin + 1, paso):
             es_candidato, sucesion = sucesion_de_numeros_sociables(num, [])
             if es_candidato and len(sucesion) in self.periodo:
-                resultado.append(sucesion)
+                append(sucesion)
 
         # self.mostrar_informacion(f"Los numeros sociales hasta {(self.limite)}:")
         return resultado
@@ -180,14 +181,15 @@ def criba_eratosthenes(num: int) -> list[int]:
         return []
 
     resultado: list[int] = []
+    append = resultado.append
     es_primo = [True for _ in range(num + 1)]
     es_primo[0] = False
     es_primo[1] = False
-    resultado.append(2)
+    append(2)
 
     ## Hasta que no encuentre una mejor solución así se queda.
     if num == 3:
-        resultado.append(3)
+        append(3)
         return resultado
 
     for i in range(3, num + 1, 2):
@@ -195,7 +197,7 @@ def criba_eratosthenes(num: int) -> list[int]:
             break
 
         if es_primo[i]:
-            resultado.append(i)
+            append(i)
             for j in range(i * i, num + 1, i * 2):
                 es_primo[j] = False
 

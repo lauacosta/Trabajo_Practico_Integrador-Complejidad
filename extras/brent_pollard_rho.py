@@ -1,9 +1,11 @@
 from miller_rabin_test import miller_rabin_deterministico
 from math import gcd
 
-max_uint64: int = pow(2,64) - 1
-class BrentPollardPrime():
-    #@total_timer
+max_uint64: int = pow(2, 64) - 1
+
+
+class BrentPollardPrime:
+    # @total_timer
     def factorizar(self, num: int) -> dict[int, int]:
         def division_tentativa(n: int) -> int:
             for i in range(2, n + 1):
@@ -15,7 +17,7 @@ class BrentPollardPrime():
             return n
 
         lista_factores: list[int] = []
-        lista_factores_primos: dict[int,int] = {}
+        lista_factores_primos: dict[int, int] = {}
 
         if miller_rabin_deterministico(num):
             return lista_factores_primos
@@ -52,12 +54,11 @@ class BrentPollardPrime():
                 lista_factores.append(m // factor)
                 lista_factores.append(factor)
 
-
         return lista_factores_primos
 
 
-#@total_timer
-def mult(a:int, b:int, mod:int) -> int:
+# @total_timer
+def mult(a: int, b: int, mod: int) -> int:
     result = 0
     while b:
         if b & 1:
@@ -68,16 +69,18 @@ def mult(a:int, b:int, mod:int) -> int:
 
     return result
 
-#@total_timer
+
+# @total_timer
 def brent_pollard_factor(n: int):
     import random
+
     m = 1000
-    a = x = y = ys = r= q = g = 0
+    a = x = y = ys = r = q = g = 0
 
     while True:
         a = int(random.randint(1, max_uint64))
         a %= n
-        if not(a == 0 or a == n - 2):
+        if not (a == 0 or a == n - 2):
             break
     y = int(random.randint(1, max_uint64)) % n
     r = 1
@@ -86,10 +89,10 @@ def brent_pollard_factor(n: int):
     while True:
         x = y
         for i in range(r):
-            y = mult(y,y,n)
+            y = mult(y, y, n)
             y += a
             if y < a:
-                y += (max_uint64 -n) + 1
+                y += (max_uint64 - n) + 1
 
             y %= n
 
@@ -98,15 +101,15 @@ def brent_pollard_factor(n: int):
             i = 0
             while i < m and i < r - k:
                 ys = y
-                y = mult(y,y,n)
+                y = mult(y, y, n)
                 y += a
                 if y < a:
                     y += max_uint64 - n + 1
                 y %= n
 
-                q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
+                q = mult(q, x - y, n) if x > y else mult(q, y - x, n)
                 i += 1
-            g = gcd(q,n)
+            g = gcd(q, n)
             k += m
             if not (k < r and g == 1):
                 break
@@ -117,13 +120,13 @@ def brent_pollard_factor(n: int):
 
     if g == n:
         while True:
-            ys = mult(ys,ys,n)
+            ys = mult(ys, ys, n)
             ys += a
             if ys < a:
                 ys += max_uint64 - n + 1
 
             ys %= n
-            g = gcd(x-ys,n) if x > ys else gcd(ys-x, n)
+            g = gcd(x - ys, n) if x > ys else gcd(ys - x, n)
             if g != 1:
                 break
     return g

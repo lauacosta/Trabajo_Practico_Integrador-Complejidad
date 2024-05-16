@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from math import gcd, sqrt
 
-maxim = pow(2,64) - 1
+maxim = pow(2, 64) - 1
 
 
 class AlgoritmoFactorizacion(ABC):
@@ -53,11 +53,12 @@ class DivisionTentativa(AlgoritmoFactorizacion):
 
         return lista_factores, pasos
 
+
 class DivisionTentativaPrimos(AlgoritmoFactorizacion):
     def __init__(self, lista_primos: list[int]):
         self.lista_primos = lista_primos
 
-    def factorizar(self, num: int) -> tuple[dict[int,int], int]:
+    def factorizar(self, num: int) -> tuple[dict[int, int], int]:
         """
         El algoritmo más básico para factorizar un entero en números primos
 
@@ -78,15 +79,16 @@ class DivisionTentativaPrimos(AlgoritmoFactorizacion):
             while num % p == 0:
                 lista_factores[p] = lista_factores.get(p, 0) + 1
                 num //= p
-                pasos +=1
-            
-            pasos +=1
-        
+                pasos += 1
+
+            pasos += 1
+
         if num > 1:
             lista_factores[num] = lista_factores.get(num, 0) + 1
-            pasos +=1
+            pasos += 1
 
         return lista_factores, pasos
+
 
 class BrentPollardPrime(AlgoritmoFactorizacion):
     def factorizar(self, num: int) -> tuple[dict[int, int], int]:
@@ -131,16 +133,17 @@ class BrentPollardPrime(AlgoritmoFactorizacion):
                             lista_factores[i] = k
 
                 else:
-                    factor = division_tentativa(m) if m < 100 else brent_pollard_factor(m)
+                    factor = (
+                        division_tentativa(m) if m < 100 else brent_pollard_factor(m)
+                    )
                     # factor = division_tentativa(m) if m < 100 else brent_pollard(m)
                     lista_factores.append(m // factor)
                     lista_factores.append(factor)
 
+            return lista_factores_primos, 0
 
-            return lista_factores_primos,0
 
-
-def mult(a:int, b:int, mod:int) -> int:
+def mult(a: int, b: int, mod: int) -> int:
     result = 0
     while b:
         if b & 1:
@@ -151,15 +154,17 @@ def mult(a:int, b:int, mod:int) -> int:
 
     return result
 
+
 def brent_pollard_factor(n: int):
     import random
+
     m = 1000
-    a = x = y = ys = r= q = g = 0
+    a = x = y = ys = r = q = g = 0
 
     while True:
         a = int(random.randint(1, maxim))
         a %= n
-        if not(a == 0 or a == n - 2):
+        if not (a == 0 or a == n - 2):
             break
     y = int(random.randint(1, maxim)) % n
     r = 1
@@ -168,10 +173,10 @@ def brent_pollard_factor(n: int):
     while True:
         x = y
         for i in range(r):
-            y = mult(y,y,n)
+            y = mult(y, y, n)
             y += a
             if y < a:
-                y += (maxim -n) + 1
+                y += (maxim - n) + 1
 
             y %= n
 
@@ -180,15 +185,15 @@ def brent_pollard_factor(n: int):
             i = 0
             while i < m and i < r - k:
                 ys = y
-                y = mult(y,y,n)
+                y = mult(y, y, n)
                 y += a
                 if y < a:
                     y += maxim - n + 1
                 y %= n
 
-                q = mult(q, x-y, n) if x > y else mult(q, y-x, n)
+                q = mult(q, x - y, n) if x > y else mult(q, y - x, n)
                 i += 1
-            g = gcd(q,n)
+            g = gcd(q, n)
             k += m
             if not (k < r and g == 1):
                 break
@@ -199,17 +204,16 @@ def brent_pollard_factor(n: int):
 
     if g == n:
         while True:
-            ys = mult(ys,ys,n)
+            ys = mult(ys, ys, n)
             ys += a
             if ys < a:
                 ys += maxim - n + 1
 
             ys %= n
-            g = gcd(x-ys,n) if x > ys else gcd(ys-x, n)
+            g = gcd(x - ys, n) if x > ys else gcd(ys - x, n)
             if g != 1:
                 break
     return g
-
 
 
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
@@ -381,7 +385,33 @@ if __name__ == "__main__":
 
     print("nombre tamaño tiempo pasos")
     # for n in range(1, 1000000000, 1000):
-    for n in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]:
+    for n in [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+    ]:
         for _ in range(10):
             a = generar_lista([n])[0]
             tiempo, pasos = bench(DivisionTentativa().factorizar, a)

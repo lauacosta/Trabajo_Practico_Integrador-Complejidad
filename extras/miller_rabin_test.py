@@ -1,4 +1,4 @@
-#@total_timer
+# @total_timer
 def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
     """
     Calcula base^n en O(log n) multiplicaciones.
@@ -18,7 +18,7 @@ def potencia_por_cuadrados(base: int, exp: int, mod: int) -> int:
     return result
 
 
-#@total_timer
+# @total_timer
 def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     """
     Referencias:
@@ -35,7 +35,7 @@ def es_compuesto(num: int, a: int, d: int, s: int) -> bool:
     return True
 
 
-#@total_timer
+# @total_timer
 def miller_rabin_deterministico(num: int) -> bool:
     """
     Versión determinística del algoritmo del test de primalidad de Miller-Rabin
