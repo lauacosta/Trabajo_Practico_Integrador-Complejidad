@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-# from decorators import delta_time
+from decorators import delta_time
 
 
-# @delta_time("Grupo 2")
+@delta_time("Grupo 2")
 def sociables(entrada: int, periodo: list[int]) -> list[list[int]]:
     app = App(entrada, periodo, criba_eratosthenes(entrada))
     resultado = app.run()
@@ -215,27 +215,27 @@ class Cache(dict):
         return super().__getitem__(key)
 
 
-if __name__ == "__main__":
-    import argparse
+# if __name__ == "__main__":
+#     import argparse
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    _ = parser.add_argument(
-        "-n",
-        "--entrada",
-        type=int,
-        default=1000000,
-        help="Determina el tamaño de la entrada.",
-    )
-    _ = parser.add_argument(
-        "-p",
-        "--periodo",
-        nargs="+",
-        type=int,
-        default=[1, 2, 4, 5],
-        help="Determina el periodo a buscar.",
-    )
-    args = parser.parse_args()
+#     parser = argparse.ArgumentParser(
+#         formatter_class=argparse.RawDescriptionHelpFormatter,
+#     )
+#     _ = parser.add_argument(
+#         "-n",
+#         "--entrada",
+#         type=int,
+#         default=1000000,
+#         help="Determina el tamaño de la entrada.",
+#     )
+#     _ = parser.add_argument(
+#         "-p",
+#         "--periodo",
+#         nargs="+",
+#         type=int,
+#         default=[1, 2, 4, 5],
+#         help="Determina el periodo a buscar.",
+#     )
+#     args = parser.parse_args()
 
-    print(sociables(args.entrada, args.periodo))
+#     print(sociables(args.entrada, args.periodo))
