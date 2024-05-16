@@ -215,27 +215,5 @@ class Cache(dict):
         return super().__getitem__(key)
 
 
-# if __name__ == "__main__":
-#     import argparse
-
-#     parser = argparse.ArgumentParser(
-#         formatter_class=argparse.RawDescriptionHelpFormatter,
-#     )
-#     _ = parser.add_argument(
-#         "-n",
-#         "--entrada",
-#         type=int,
-#         default=1000000,
-#         help="Determina el tamaño de la entrada.",
-#     )
-#     _ = parser.add_argument(
-#         "-p",
-#         "--periodo",
-#         nargs="+",
-#         type=int,
-#         default=[1, 2, 4, 5],
-#         help="Determina el periodo a buscar.",
-#     )
-#     args = parser.parse_args()
-
-#     print(sociables(args.entrada, args.periodo))
+if __name__ == "__main__":
+    print(sociables(2000000, [1, 2, 4, 5, 28]))
