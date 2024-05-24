@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 from decorators import delta_time
-
 
 @delta_time("Grupo 2")
 def sociables(entrada: int, periodo: list[int]) -> list[list[int]]:

@@ -8,6 +8,7 @@ from helpers import Cache, total_timer, mostrar_tiempos_ejecución
 # https://www.python.org/doc/essays/list2str/
 # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Loops
 
+
 class App:
     def __init__(self, limite: int, periodo: list[int], lista_primos: list[int]):
         self.limite = limite
@@ -44,7 +45,6 @@ class App:
                         print("".join(secuencia))
                         nro_sucesion += 1
                 actual = num
-
 
             self.mostrar_informacion(f"Los numeros sociales hasta {(actual)}:")
         except KeyboardInterrupt:

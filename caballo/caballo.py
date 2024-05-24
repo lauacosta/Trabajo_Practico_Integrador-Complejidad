@@ -1,0 +1,150 @@
+#!/usr/bin/env python
+import pprint
+import unittest
+
+FILAS = 8
+COLUMNAS = FILAS
+TABLERO = [[0 for _ in range(FILAS)] for _ in range(COLUMNAS)]
+CONJUNTO_SOLUCION = []
+
+
+def control_limites(x: int, y: int):
+    """
+    Controla que los índices puedan ubicarse dentro del tablero.
+    """
+    return FILAS > x >= 0 and COLUMNAS > y >= 0
+
+
+def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
+    """
+    Encuentra y devuelve todas los posibles movimientos validos desde una posición.
+    """
+    posibles_movimientos = [
+        (coordenada[0] + x, coordenada[1] + y)
+        for x, y in [
+            (2, 1),
+            (2, -1),
+            (-2, 1),
+            (-2, -1),
+            (1, 2),
+            (1, -2),
+            (-1, 2),
+            (-1, -2),
+        ]
+    ]
+
+    movimientos_efectivos = [
+        (x, y)
+        for x, y in posibles_movimientos
+        if control_limites(x, y)
+        if TABLERO[x][y] == 0
+    ]
+
+    return movimientos_efectivos
+
+
+def mover_pieza(coordenada: tuple[int, int], paso: int):
+    """
+    Implementación en base al Algoritmo de Warnsdorff.
+        1. Comienza en la posición inicial.
+        2. Desde la posición actual, calcula todos los movimientos posibles del caballo.
+           Para cada movimiento posible, cuenta el número de movimientos futuros posibles desde esa nueva posición.
+        3  Elige el movimiento que deja al caballo con la menor cantidad de
+           movimientos futuros posibles. Si hay un empate, elige cualquiera de los movimientos empatados.
+        4. Mueve el caballo a la nueva posición.
+        5. Repite los pasos 2 a 4 hasta que todas las casillas hayan sido visitadas.
+    """
+
+    movimientos = ev_movimientos(coordenada)
+    min_mov = 8
+    min_idx = (0, 0)
+
+    # print(f"Los movimientos efectivos para {coordenada} son:")
+    for mov in movimientos:
+        cant_mov = len(ev_movimientos(mov))
+        # print(f"{mov}: {cant_mov} movs")
+        if cant_mov < min_mov:
+            min_mov = cant_mov
+            min_idx = mov
+
+    # print(f"\nEl movimiento que deja la menor cantidad de movimientos futuros es {min_idx} con : {min_mov} movimientos\n")
+    CONJUNTO_SOLUCION.append(min_idx)
+    TABLERO[min_idx[0]][min_idx[1]] = paso
+    # pprint.pp(TABLERO)
+
+    return min_idx
+
+
+def main(x: int, y: int):
+    print("Comienzo:")
+    pprint.pp(TABLERO)
+
+    pos = (x, y)
+    CONJUNTO_SOLUCION.append(pos)
+
+    TABLERO[x][y] = 1
+
+    for i in range(2, FILAS * COLUMNAS + 1):
+        pos = mover_pieza(pos, i)
+        if pos is None:
+            print("La quedamos aca jefe")
+            break
+
+    print("\nFinal:")
+    pprint.pp(TABLERO)
+    print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
+
+
+class TestMain(unittest.TestCase):
+    def test_main(self):
+        for i in range(FILAS):
+            for j in range(COLUMNAS):
+                global TABLERO
+                TABLERO = [[0 for _ in range(FILAS)] for _ in range(COLUMNAS)]
+                global CONJUNTO_SOLUCION
+                CONJUNTO_SOLUCION = []
+
+                main(i, j)
+
+                self.assertEqual(len(CONJUNTO_SOLUCION), 64, f"con {i,j}")
+                self.assertIn(
+                    64, [item for sublist in TABLERO for item in sublist], f"con {i,j}"
+                )
+
+
+def parse_args():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-c",
+        "--check",
+        action='store_true',
+        help="Activa el modo de prueba.",
+    )
+    parser.add_argument(
+        "-x",
+        "--fila",
+        type=int,
+        default=0,
+        help="Determina el valor de la fila en donde empezar.",
+    )
+    parser.add_argument(
+        "-y",
+        "--columna",
+        type=int,
+        default=0,
+        help="Determina el valor de la columna en donde empezar.",
+    )
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    if args.check:
+        unittest.main()
+    else:
+        main(args.fila, args.columna)
