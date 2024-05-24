@@ -4,9 +4,10 @@ import unittest
 
 FILAS = 8
 COLUMNAS = FILAS
+
+#El conjunto de candidatos son todas las posiciones del tablero 
 TABLERO = [[0 for _ in range(FILAS)] for _ in range(COLUMNAS)]
 CONJUNTO_SOLUCION = []
-
 
 def control_limites(x: int, y: int):
     """
@@ -14,7 +15,7 @@ def control_limites(x: int, y: int):
     """
     return FILAS > x >= 0 and COLUMNAS > y >= 0
 
-
+#Función de selección
 def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
     """
     Encuentra y devuelve todas los posibles movimientos validos desde una posición.
@@ -32,7 +33,7 @@ def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
             (-1, -2),
         ]
     ]
-
+    
     movimientos_efectivos = [
         (x, y)
         for x, y in posibles_movimientos
@@ -42,7 +43,7 @@ def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
 
     return movimientos_efectivos
 
-
+#Función objetivo
 def mover_pieza(coordenada: tuple[int, int], paso: int):
     """
     Implementación en base al Algoritmo de Warnsdorff.
@@ -59,21 +60,19 @@ def mover_pieza(coordenada: tuple[int, int], paso: int):
     min_mov = 8
     min_idx = (0, 0)
 
-    # print(f"Los movimientos efectivos para {coordenada} son:")
+    # Función de factibilidad. Busco el movimiento del caballo que deja al caballo con la menor cantidad de movimientos futuros posibles.
     for mov in movimientos:
         cant_mov = len(ev_movimientos(mov))
-        # print(f"{mov}: {cant_mov} movs")
         if cant_mov < min_mov:
             min_mov = cant_mov
             min_idx = mov
 
-    # print(f"\nEl movimiento que deja la menor cantidad de movimientos futuros es {min_idx} con : {min_mov} movimientos\n")
+    # Agrego al conjunto solución el movimiento que deja la menor cantidad de movimientos futuros 
     CONJUNTO_SOLUCION.append(min_idx)
+    # Escribo el numero de paso en esa posición en el tablero
     TABLERO[min_idx[0]][min_idx[1]] = paso
-    # pprint.pp(TABLERO)
 
     return min_idx
-
 
 def main(x: int, y: int):
     print("Comienzo:")
