@@ -92,7 +92,17 @@ def main(x: int, y: int):
 
     print("\nFinal:")
     pprint.pp(TABLERO)
-    print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
+
+
+def generar_csv():
+    import csv
+
+    with open("movimientos.csv", "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        for i in range(len(CONJUNTO_SOLUCION) - 1):
+            x1, y1 = CONJUNTO_SOLUCION[i]
+            x2, y2 = CONJUNTO_SOLUCION[i + 1]
+            writer.writerow([x1, y1, x2, y2])
 
 
 class TestMain(unittest.TestCase):
@@ -121,7 +131,7 @@ def parse_args():
     parser.add_argument(
         "-c",
         "--check",
-        action='store_true',
+        action="store_true",
         help="Activa el modo de prueba.",
     )
     parser.add_argument(
@@ -138,6 +148,12 @@ def parse_args():
         default=0,
         help="Determina el valor de la columna en donde empezar.",
     )
+    parser.add_argument(
+        "-i",
+        "--imagen",
+        action="store_true",
+        help="Genera una imagen del tablero.",
+    )
 
     return parser.parse_args()
 
@@ -146,5 +162,13 @@ if __name__ == "__main__":
     args = parse_args()
     if args.check:
         unittest.main()
+    elif args.imagen:
+        from ploteo import generar_imagen
+
+        main(args.fila, args.columna)
+        print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
+        generar_csv()
+        generar_imagen()
     else:
         main(args.fila, args.columna)
+        print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
