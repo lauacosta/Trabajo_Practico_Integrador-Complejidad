@@ -5,9 +5,10 @@ import unittest
 FILAS = 8
 COLUMNAS = FILAS
 
-#El conjunto de candidatos son todas las posiciones del tablero 
+# El conjunto de candidatos son todas las posiciones del tablero.
 TABLERO = [[0 for _ in range(FILAS)] for _ in range(COLUMNAS)]
 CONJUNTO_SOLUCION = []
+
 
 def control_limites(x: int, y: int):
     """
@@ -15,7 +16,8 @@ def control_limites(x: int, y: int):
     """
     return FILAS > x >= 0 and COLUMNAS > y >= 0
 
-#Función de selección
+
+# Función de selección
 def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
     """
     Encuentra y devuelve todas los posibles movimientos validos desde una posición.
@@ -33,7 +35,7 @@ def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
             (-1, -2),
         ]
     ]
-    
+
     movimientos_efectivos = [
         (x, y)
         for x, y in posibles_movimientos
@@ -43,7 +45,8 @@ def ev_movimientos(coordenada: tuple[int, int]) -> list[tuple[int, int]]:
 
     return movimientos_efectivos
 
-#Función objetivo
+
+# Función objetivo
 def mover_pieza(coordenada: tuple[int, int], paso: int):
     """
     Implementación en base al Algoritmo de Warnsdorff.
@@ -67,12 +70,13 @@ def mover_pieza(coordenada: tuple[int, int], paso: int):
             min_mov = cant_mov
             min_idx = mov
 
-    # Agrego al conjunto solución el movimiento que deja la menor cantidad de movimientos futuros 
+    # Agrego al conjunto solución el movimiento que deja la menor cantidad de movimientos futuros
     CONJUNTO_SOLUCION.append(min_idx)
-    # Escribo el numero de paso en esa posición en el tablero
+    # Escribo el numero de paso en esa posición en el tablero.
     TABLERO[min_idx[0]][min_idx[1]] = paso
 
     return min_idx
+
 
 def main(x: int, y: int):
     print("Comienzo:")
@@ -86,7 +90,6 @@ def main(x: int, y: int):
     for i in range(2, FILAS * COLUMNAS + 1):
         pos = mover_pieza(pos, i)
         if pos is None:
-            print("La quedamos aca jefe")
             break
 
     print("\nFinal:")
@@ -115,9 +118,11 @@ class TestMain(unittest.TestCase):
 
                 main(i, j)
 
-                self.assertEqual(len(CONJUNTO_SOLUCION), 64, f"con {i,j}")
+                self.assertEqual(len(CONJUNTO_SOLUCION), FILAS * COLUMNAS, f"con {i,j}")
                 self.assertIn(
-                    64, [item for sublist in TABLERO for item in sublist], f"con {i,j}"
+                    FILAS * COLUMNAS,
+                    [item for sublist in TABLERO for item in sublist],
+                    f"con {i,j}",
                 )
 
 
@@ -151,14 +156,36 @@ def parse_args():
         "-i",
         "--imagen",
         action="store_true",
+        default=False,
         help="Genera una imagen del tablero.",
     )
+    parser.add_argument(
+        "-o",
+        "--output_file",
+        metavar="FILE",
+        default="tablero.png",
+        help="guarda la imagen en el path indicado.",
+    )
+    parser.add_argument(
+        "-s",
+        "--show",
+        action="store_true",
+        default=False,
+        help="Abre una ventana con la imagen generada.",
+    )
 
-    return parser.parse_args()
+    return parser
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    parser = parse_args()
+    args = parser.parse_args()
+
+    if args.show and not args.imagen:
+        print("[Error] - Solo se puede usar -s en combinación con -i")
+        parser.print_help()
+        exit()
+
     if args.check:
         unittest.main()
     elif args.imagen:
@@ -167,7 +194,7 @@ if __name__ == "__main__":
         main(args.fila, args.columna)
         print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
         generar_csv()
-        generar_imagen()
+        generar_imagen(args.output_file, args.show)
     else:
         main(args.fila, args.columna)
         print(f"\nEl conjunto solución es: \n {CONJUNTO_SOLUCION}")
