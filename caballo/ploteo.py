@@ -29,41 +29,47 @@ def generar_tablero():
                         edgecolor="black",
                     )
 
-
 def dibujar_vector(x1, y1, x2, y2):
     plt.arrow(
         x1 + 0.5,
         y1 + 0.5,
         x2 - x1,
         y2 - y1,
-        color="red",
+        color="#D81E5B",
         head_width=0.1,
         length_includes_head=True,
     )
 
-
 def generar_imagen(path: str, show: bool):
     import csv
 
-    movements = []
+    movimientos = []
     with open("movimientos.csv", newline="") as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            movements.append([int(x) for x in row])
+            movimientos.append([int(x) for x in row])
 
     generar_tablero()
 
     # Plotea los vectores de acuerdo a los movimientos.
-    for move in movements:
-        dibujar_vector(move[0], move[1], move[2], move[3])
+    for mov in movimientos:
+        dibujar_vector(mov[0], mov[1], mov[2], mov[3])
 
     # Marco el punto de inicio.
     plt.plot(
-        movements[0][0] + 0.5,
-        movements[0][1] + 0.5,
+        movimientos[0][0] + 0.5,
+        movimientos[0][1] + 0.5,
         "o",
-        color="yellow",
-        markersize=15,
+        color="#2374AB",
+        markersize=20,
+    )
+
+    plt.plot(
+        movimientos[-1][2] + 0.5,
+        movimientos[-1][3] + 0.5,
+        "X",
+        color="#FA9F42",
+        markersize=20,
     )
 
     plt.gca()
@@ -71,6 +77,5 @@ def generar_imagen(path: str, show: bool):
         plt.savefig(path)
         if show:
             plt.show()
-            plt.savefig(path)
     except KeyboardInterrupt:
         exit()
