@@ -63,7 +63,7 @@ def mover_pieza(coordenada: tuple[int, int], paso: int):
     min_mov = 8
     min_idx = (0, 0)
 
-    # Función de factibilidad. Busco el movimiento del caballo que deja al caballo 
+    # Función de factibilidad. Busco el movimiento del caballo que deja al caballo
     # con la menor cantidad de movimientos futuros posibles.
     for mov in movimientos:
         cant_mov = len(ev_movimientos(mov))

@@ -29,6 +29,7 @@ def generar_tablero():
                         edgecolor="black",
                     )
 
+
 def dibujar_vector(x1, y1, x2, y2):
     plt.arrow(
         x1 + 0.5,
@@ -39,6 +40,7 @@ def dibujar_vector(x1, y1, x2, y2):
         head_width=0.1,
         length_includes_head=True,
     )
+
 
 def generar_imagen(path: str, show: bool):
     import csv
