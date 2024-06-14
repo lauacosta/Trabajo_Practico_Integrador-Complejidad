@@ -6,7 +6,7 @@ FILAS = 8
 COLUMNAS = FILAS
 
 # El conjunto de candidatos son todas las posiciones del tablero.
-TABLERO = [[0 for _ in range(FILAS)] for _ in range(COLUMNAS)]
+TABLERO = [[0 for _ in range(COLUMNAS)] for _ in range(FILAS)]
 CONJUNTO_SOLUCION = []
 
 
