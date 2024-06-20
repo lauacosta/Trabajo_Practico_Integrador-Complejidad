@@ -1,5 +1,5 @@
 import sys
-
+from tabulate import tabulate
 # Un viajante tiene que llegar de la ciudad A a la ciudad B, con un tanque de nafta de tamaño C,
 # que es la maxima capacidad en litros del tanque de combustible. Entre la ciudad A y la ciudad B hay N estaciones de servicio,
 # cada una con un precio de nafta asociado, y en cada estacion de servicio el viajante puede llenar el tanque.
@@ -9,11 +9,10 @@ import sys
 
 CAPACIDAD_TANQUE = 100
 
+
 # Heuristica: Desde la posición actual busco cual es la estación más lejana que puedo alcanzar
 # con la capacidad de mi tanque. Entre las estaciónes dentro de ese alcance, selecciono la que tiene el costo minimo
-def min_paradas_min_costo(
-    opciones: list[tuple[int,int]]
-) -> tuple[int, float]:
+def min_paradas_min_costo(opciones: list[tuple[int, int]], seleccion: list[tuple[int,int]]):
     pos_actual = 0
     cant_paradas = 0
     costo_total = 0
@@ -35,31 +34,35 @@ def min_paradas_min_costo(
         # Si no es el final, entonces paré en una estación
         if sig_pos < n - 1:
             cant_paradas += 1
-            print(f"parada: {opciones[sig_pos][0]}, costo: {costo_min}")
+            opcion = opciones[sig_pos]
+            seleccion.append(opcion)
             costo_total += (
-                costo_min * (opciones[sig_pos][0] - opciones[pos_actual][0]) / CAPACIDAD_TANQUE
+                costo_min
+                * (opciones[sig_pos][0] - opciones[pos_actual][0])
+                / CAPACIDAD_TANQUE
             )
 
         pos_actual = sig_pos
 
-    return cant_paradas, costo_total
+    return cant_paradas, costo_total, seleccion
 
 
+PARE = False
 def backtracking(
     idx: int,
     opciones: list[tuple[int, int]],
-    gasto: int,
+    gasto: float,
     cantidad_paradas: int,
     paradas_realizadas: list[tuple[int, int]],
     capacidad_tanque: int,
     mejor_seleccion: list[tuple[int, int]],
-    mejor_gasto: int,
+    mejor_gasto: float,
     mejor_cantidad: int,
     capacidad_en_mejor_caso: int,
 ):
     if idx == len(opciones) - 1:
         if mejor_gasto >= gasto and mejor_cantidad >= cantidad_paradas:
-            mejor_gasto = gasto
+            mejor_gasto = gasto  
             mejor_cantidad = cantidad_paradas
             mejor_seleccion = paradas_realizadas[:]
             capacidad_en_mejor_caso = capacidad_tanque
@@ -69,12 +72,12 @@ def backtracking(
     distancia = opciones[idx + 1][0] - opciones[idx][0]
     # print(f"La distancia entre {opciones[idx + 1][0]} y {opciones[idx][0]} es: {distancia} y mi capacidad es: {capacidad_tanque}")
     # TODO: Revisar el bug, en donde cuando retrocede despues de verificar que no se puede tomar esa ruta
-    # añade a la lista de paradas seleccionadas, la parada en donde decide que va a cargar en la siguiente parada y no a dicha siguiente parada. 
+    # añade a la lista de paradas seleccionadas, la parada en donde decide que va a cargar en la siguiente parada y no a dicha siguiente parada.
     # Si probas con una capacidad de 100, va a devolverte [(50, 100), (180, 50)] cuando debería devolverte [(100, 60), (200, 100)]
 
     if distancia > capacidad_tanque:
         return mejor_gasto, mejor_cantidad, mejor_seleccion, capacidad_en_mejor_caso
-    
+
     mejor_gasto, mejor_cantidad, mejor_seleccion, capacidad_en_mejor_caso = (
         backtracking(
             idx + 1,
@@ -91,7 +94,10 @@ def backtracking(
     )
 
     modelo_actual = opciones[idx]
+    if modelo_actual == (180,50) or modelo_actual == (50,100):
+        print("Aca!")
     paradas_realizadas.append(modelo_actual)
+     
 
     mejor_gasto, mejor_cantidad, mejor_seleccion, capacidad_en_mejor_caso = (
         backtracking(
@@ -107,7 +113,9 @@ def backtracking(
             capacidad_en_mejor_caso,
         )
     )
+    # if not PARE:
     paradas_realizadas.pop()
+
     return mejor_gasto, mejor_cantidad, mejor_seleccion, capacidad_en_mejor_caso
 
 
@@ -122,12 +130,10 @@ def main():
         (300, 0),
     ]
 
-    print("------------------------------\n\tGREEDY\n------------------------------ ")
-    paradas, total_cost = min_paradas_min_costo(estaciones)
-    print(f"Numero de paradas: {paradas}, Costo total: {total_cost}")
+    paradas, total_cost, seleccion = min_paradas_min_costo(estaciones, [])
+    tabla = [["Numero de paradas",paradas], ["Costo total", total_cost], ["Paradas tomadas", seleccion]]
+    print(f"GREEDY:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
-
-    print("------------------------------\n\tBACKTRACKING\n------------------------------ ")
     mejor_gasto, mejor_cantidad, mejor_seleccion, capacidad_tanque = backtracking(
         0,
         estaciones,
@@ -140,12 +146,8 @@ def main():
         sys.maxsize,
         0,
     )
-    print(f"Numero de paradas: {mejor_cantidad}")
-    print(f"Costo total: {mejor_gasto}")
-    print(
-        f"Capacidad final del tanque: {capacidad_tanque}"
-    )   
-    print(f"Paradas tomadas: {mejor_seleccion}")
+    tabla = [["Numero de paradas",mejor_cantidad], ["Costo total", mejor_gasto],["Capacidad final del tanque", capacidad_tanque], ["Paradas tomadas", mejor_seleccion]]
+    print(f"BACKTRACKING:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
 
 if __name__ == "__main__":
