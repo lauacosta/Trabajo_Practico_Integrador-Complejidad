@@ -79,8 +79,8 @@ def backtracking_impl(
     modelo_actual = opciones[idx+1]
     paradas_realizadas.append(modelo_actual)
 
-    gasto_recarga = gasto + modelo_actual[1] * (CAPACIDAD_TANQUE - capacidad_tanque)
-    # gasto_recarga = gasto + modelo_actual[1] * (modelo_actual[0] - paradas_realizadas[-1][0])
+    # gasto_recarga = gasto + modelo_actual[1] * (CAPACIDAD_TANQUE - capacidad_tanque)
+    gasto_recarga = gasto + modelo_actual[1] * (modelo_actual[0] - paradas_realizadas[-1][0])
 
     aux_minimo_gasto, mejor_seleccion = (
         backtracking_impl(
