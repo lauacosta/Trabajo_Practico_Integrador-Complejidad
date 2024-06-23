@@ -9,9 +9,10 @@ from tabulate import tabulate
 
 CAPACIDAD_TANQUE = 100
 
+
 # Heuristica: Desde la posición actual busco cual es la estación más lejana que puedo alcanzar
 # con la capacidad de mi tanque. Entre las estaciónes dentro de ese alcance, selecciono la que tiene el costo minimo
-def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int,int]]):
+def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int, int]]):
     pos_actual = 0
     costo_total = 0
     n = len(opciones)
@@ -33,14 +34,12 @@ def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int,int]]
         if sig_pos < n - 1:
             opcion = opciones[sig_pos]
             seleccion.append(opcion)
-            costo_total += (
-                costo_min
-                * (opciones[sig_pos][0] - opciones[pos_actual][0])
-            )
+            costo_total += costo_min * (opciones[sig_pos][0] - opciones[pos_actual][0])
 
         pos_actual = sig_pos
 
     return costo_total, seleccion
+
 
 def backtracking_impl(
     idx: int,
@@ -53,62 +52,56 @@ def backtracking_impl(
 ):
     if idx == len(opciones) - 1:
         if aux_minimo_gasto > gasto:
-            aux_minimo_gasto = gasto  
+            aux_minimo_gasto = gasto
             mejor_seleccion = paradas_realizadas[:]
             # capacidad_en_mejor_caso = capacidad_tanque
 
-        return aux_minimo_gasto,  mejor_seleccion
+        return aux_minimo_gasto, mejor_seleccion
 
     distancia = opciones[idx + 1][0] - opciones[idx][0]
     if distancia > capacidad_tanque:
-        return aux_minimo_gasto,  mejor_seleccion
+        return aux_minimo_gasto, mejor_seleccion
 
-    aux_minimo_gasto,  mejor_seleccion = (
-        backtracking_impl(
-            idx + 1,
-            opciones,
-            gasto,
-            paradas_realizadas,
-            capacidad_tanque - distancia,
-            mejor_seleccion,
-            aux_minimo_gasto,
-        )
+    aux_minimo_gasto, mejor_seleccion = backtracking_impl(
+        idx + 1,
+        opciones,
+        gasto,
+        paradas_realizadas,
+        capacidad_tanque - distancia,
+        mejor_seleccion,
+        aux_minimo_gasto,
     )
 
-    # Interpreto que voy a tener que parar en la siguiente estación
-    modelo_actual = opciones[idx+1]
-    paradas_realizadas.append(modelo_actual)
+    paradas_realizadas.append(opciones[idx + 1])
 
-    # gasto_recarga = gasto + modelo_actual[1] * (CAPACIDAD_TANQUE - capacidad_tanque)
-    gasto_recarga = gasto + modelo_actual[1] * (modelo_actual[0] - paradas_realizadas[-1][0])
+    litros_por_cargar = CAPACIDAD_TANQUE - capacidad_tanque + distancia
+    gasto_recarga = gasto + opciones[idx + 1][1] * (litros_por_cargar)
 
-    aux_minimo_gasto, mejor_seleccion = (
-        backtracking_impl(
-            idx + 1,
-            opciones,
-            gasto_recarga,
-            paradas_realizadas,
-            CAPACIDAD_TANQUE,
-            mejor_seleccion,
-            aux_minimo_gasto,
-        )
+    aux_minimo_gasto, mejor_seleccion = backtracking_impl(
+        idx + 1,
+        opciones,
+        gasto_recarga,
+        paradas_realizadas,
+        CAPACIDAD_TANQUE,
+        mejor_seleccion,
+        aux_minimo_gasto,
     )
 
     paradas_realizadas.pop()
 
-    return aux_minimo_gasto, mejor_seleccion 
+    return aux_minimo_gasto, mejor_seleccion
 
 
 def main():
-    estaciones = [
-        (0, 0),
-        (50, 100),
-        (100, 60),
-        (180, 50),
-        (200, 100),
-        (250, 50),
-        (300, 0),
-    ]
+    # estaciones = [
+    #     (0, 0),
+    #     (50, 100),
+    #     (100, 60),
+    #     (180, 50),
+    #     (200, 100),
+    #     (250, 50),
+    #     (300, 0),
+    # ]
 
     # estaciones = [
     #     (0, 0),
@@ -119,20 +112,24 @@ def main():
     #     (200, 0),
     # ]
 
-    # estaciones = [
-    #     (0, 0),
-    #     (50, 20),
-    #     (80, 70),
-    #     (100, 75),
-    #     (180, 60),
-    #     (200, 0),
-    # ]
+    estaciones = [
+        (0, 0),
+        (50, 20),
+        (80, 70),
+        (100, 75),
+        (180, 60),
+        (200, 0),
+    ]
 
     total_cost, seleccion = greedy_impl(estaciones, [])
-    tabla = [["Numero de paradas",len(seleccion)], ["Costo total", total_cost], ["Paradas tomadas", seleccion]]
+    tabla = [
+        ["Numero de paradas", len(seleccion)],
+        ["Costo total", total_cost],
+        ["Paradas tomadas", seleccion],
+    ]
     print(f"GREEDY:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
-    _, mejor_seleccion = backtracking_impl(
+    mejor_gasto, mejor_seleccion = backtracking_impl(
         0,
         estaciones,
         0,
@@ -142,14 +139,11 @@ def main():
         sys.maxsize,
     )
 
-    mejor_gasto = 0
-    for i in range(len(mejor_seleccion)):
-        if i == 0:
-            mejor_gasto += mejor_seleccion[i][0] * mejor_seleccion[i][1]
-        else:
-            mejor_gasto += (mejor_seleccion[i][0] - mejor_seleccion[i-1][0]) * mejor_seleccion[i][1]
-
-    tabla = [["Numero de paradas",len(mejor_seleccion)], ["Costo total", mejor_gasto], ["Paradas tomadas", mejor_seleccion]]
+    tabla = [
+        ["Numero de paradas", len(mejor_seleccion)],
+        ["Costo total", mejor_gasto],
+        ["Paradas tomadas", mejor_seleccion],
+    ]
     print(f"BACKTRACKING:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
 
