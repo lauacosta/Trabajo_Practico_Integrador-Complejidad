@@ -16,7 +16,7 @@ Problema:
 
 import sys
 from tabulate import tabulate
-
+import pprint
 
 def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int, int]]):
     """
@@ -163,61 +163,55 @@ def dinamica_impl(
 
 
 def dinamica_impl_table(opciones, capacidad_tanque):
+    # Funcion de recurrencia
+    # F(p,pa) {	
+    # ([], inf) => Si p = 0 y distancia > capacidad_tanque	
+    # ([], 0) => Si p = 1 y pa = 0	
+    # min {F(p,pa)[1]+F(p,p-1)[1], F(p-1,pa)[1] } => Si p > 0 y pa > 0	
+    # }
+    
     cantidad_paradas = len(opciones)
     matriz = [
-        [[float("inf")] * (cantidad_paradas + 1) for _ in range(capacidad_tanque + 1)]
+        [([],float("inf")) for _ in range(cantidad_paradas)]
         for _ in range(cantidad_paradas)
     ]
+    matriz[1][0] = ([],0)
+   
 
-    matriz[0][capacidad_tanque][0] = 0
-
-    # Relleno la matriz.
-    for idx in range(cantidad_paradas - 1):
-        for capac in range(capacidad_tanque + 1):
-            for p in range(idx + 1):
-                if matriz[idx][capac][p] != float("inf"):
-                    # Sigo el camino sin detenerme.
-                    distancia = opciones[idx + 1][0] - opciones[idx][0]
-                    if distancia <= capac:
-                        matriz[idx + 1][capac - distancia][p] = min(
-                            matriz[idx + 1][capac - distancia][p], matriz[idx][capac][p]
-                        )
-
-                    # Paro en la siguiente estación.
-                    litros_por_cargar = capacidad_tanque - capac + distancia
-                    gasto_recarga = (
-                        matriz[idx][capac][p] + opciones[idx + 1][1] * litros_por_cargar
-                    )
-                    if gasto_recarga < float("inf"):
-                        matriz[idx + 1][capacidad_tanque][p + 1] = min(
-                            matriz[idx + 1][capacidad_tanque][p + 1], gasto_recarga
-                        )
-
-    # # Busco el costo mínimo en la matriz y la configuración de estaciones a la que pertenece.
-    # minimo_gasto = float('inf')
-    # mejor_seleccion = []
-    # for paradas in range(cantidad_paradas):
-    #     gasto = matriz[cantidad_paradas - 1][0][paradas]
-    #     if gasto < minimo_gasto:
-    #         minimo_gasto = gasto
-    #         mejor_seleccion.append(opciones[paradas])  # Extract the optimal stops configuration here
-
-    return minimo_gasto, mejor_seleccion
-
+    # Relleno la matriz. 
+    # p = parada 
+    # pa = parada actual
+    for p in range(1, cantidad_paradas):
+        for pa in range(cantidad_paradas):
+            distancia = opciones[pa][0] - opciones[p-1][0]
+            gasto = distancia * opciones[pa][1] + matriz[p][p-1][1]
+          
+            if distancia <= capacidad_tanque and gasto <= matriz[p-1][pa][1]:
+                if opciones[p-1] != (0,0): 
+                    aux = [opciones[p-1],opciones[pa]]
+                else:
+                    aux =opciones[pa]
+                matriz[p][pa] = (aux,gasto)
+            else:
+                if p > 0:  
+                    matriz[p][pa] = matriz[p-1][pa]
+    matriz[cantidad_paradas-1][cantidad_paradas-1][0].pop()
+    
+    return matriz[cantidad_paradas-1][cantidad_paradas-1][1] ,  matriz[cantidad_paradas-1][cantidad_paradas-1][0]   
 
 CAPACIDAD_TANQUE = 100
 
 
 def main():
-    estaciones = [
-        (0, 0),
-        (50, 100),
-        (100, 60),
-        (180, 50),
-        (200, 100),
-        (250, 50),
-        (300, 0),
-    ]
+    # estaciones = [
+    #     (0, 0),
+    #     (50, 100),
+    #     (100, 60),
+    #     (180, 50),
+    #     (200, 100),
+    #     (250, 50),
+    #     (300, 0),
+    # ]
 
     # estaciones = [
     #     (0, 0),
@@ -236,14 +230,14 @@ def main():
     #     (180, 60),
     #     (200, 0),
     # ]
-    # estaciones = [
-    #     (0, 0),
-    #     (50, 100),
-    #     (60, 30),
-    #     (100, 25),
-    #     (120, 200),
-    #     (200, 0),
-    # ]
+    estaciones = [
+        (0, 0),
+        (50, 100),
+        (60, 30),
+        (100, 25),
+        (120, 200),
+        (200, 0),
+    ]
 
     total_cost, seleccion = greedy_impl(estaciones, [])
     tabla = [
@@ -286,17 +280,26 @@ def main():
         ["Paradas tomadas", mejor_seleccion],
     ]
     print(f"DINAMICA TOP-DOWN (Memoización):\n{tabulate(tabla,tablefmt="simple_grid")}")
-    # mejor_gasto, mejor_seleccion = dinamica_impl_table(
-    #     opciones=estaciones,
-    #     capacidad_tanque=CAPACIDAD_TANQUE,
-    # )
-    # tabla = [
-    #     ["Numero de paradas", len(mejor_seleccion)],
-    #     ["Costo total", mejor_gasto],
-    #     ["Paradas tomadas", mejor_seleccion],
-    # ]
-    # print(f"DINAMICA BOTTOM-UP (Tabulación):\n{tabulate(tabla,tablefmt="simple_grid")}")
+    mejor_gasto, mejor_seleccion = dinamica_impl_table(
+        opciones=estaciones,
+        capacidad_tanque=CAPACIDAD_TANQUE,
+    )
+    tabla = [
+        ["Numero de paradas", len(mejor_seleccion)],
+        ["Costo total", mejor_gasto],
+        ["Paradas tomadas", mejor_seleccion],
+    ]
+    print(f"DINAMICA BOTTOM-UP (Tabulación):\n{tabulate(tabla,tablefmt="simple_grid")}")
 
 
 if __name__ == "__main__":
     main()
+
+'''
+[[([], inf), ([], inf), ([], inf), ([], inf), ([], inf), ([], inf)], 
+[((0, 0), 0), ((50, 100), 5000), ((60, 30), 1800), ((100, 25), 2500), ([], inf), ([], inf)], 
+[((0, 0), 0), ((50, 100), 5000), ((60, 30), 1800), ((100, 25), 2500), ([(50, 100), (120, 200)], 19000), ([], inf)], 
+[((0, 0), 0), ((50, 100), 5000), ((60, 30), 1800), ((100, 25), 2500), ([(60, 30), (120, 200)], 13800), ([], inf)], 
+[((0, 0), 0), ((50, 100), 5000), ((60, 30), 1800), ((100, 25), 2500), ([(100, 25), (120, 200)], 6500), ([], inf)], 
+[((0, 0), 0), ((50, 100), 5000), ((60, 30), 1800), ((100, 25), 2500), ([(100, 25), (120, 200)], 6500), ([], inf)]] 
+'''
