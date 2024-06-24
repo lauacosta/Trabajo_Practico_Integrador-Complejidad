@@ -199,7 +199,7 @@ def dinamica_impl_table(opciones, capacidad_tanque):
             else:
                 if p > 0:  
                     matriz[p][pa] = matriz[p-1][pa]
-    # matriz[cantidad_paradas-1][cantidad_paradas-1][0].pop()
+    matriz[cantidad_paradas-1][cantidad_paradas-1][0].pop()
     print(matriz)
     return matriz[cantidad_paradas-1][cantidad_paradas-1][1] ,  matriz[cantidad_paradas-1][cantidad_paradas-1][0]   
 
