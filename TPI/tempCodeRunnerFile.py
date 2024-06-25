@@ -1,1 +1,0 @@
-    # matriz[cantidad_paradas-1][cantidad_paradas-1][0].pop()

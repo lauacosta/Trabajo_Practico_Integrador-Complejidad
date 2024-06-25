@@ -16,9 +16,8 @@ Problema:
 
 import sys
 from tabulate import tabulate
-import pprint
 
-def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int, int]]):
+def greedy(opciones: list[tuple[int, int]], seleccion: list[tuple[int, int]]):
     """
     Heuristica: Desde la posición actual busco cual es la estación más lejana que puedo alcanzar con la capacidad de mi tanque.
     Entre las estaciónes dentro de ese alcance, selecciono la que tiene el costo minimo.
@@ -53,34 +52,34 @@ def greedy_impl(opciones: list[tuple[int, int]], seleccion: list[tuple[int, int]
     return costo_total, seleccion
 
 
-def backtracking_impl(
+def backtracking(
     idx: int,
     opciones: list[tuple[int, int]],
     gasto: float,
     paradas_realizadas: list[tuple[int, int]],
     capacidad_tanque: int,
     mejor_seleccion: list[tuple[int, int]],
-    aux_minimo_gasto: float,
+    minimo_gasto: float,
 ):
     if idx == len(opciones) - 1:
-        if aux_minimo_gasto > gasto:
-            aux_minimo_gasto = gasto
+        if minimo_gasto > gasto:
+            minimo_gasto = gasto
             mejor_seleccion = paradas_realizadas[:]
 
-        return aux_minimo_gasto, mejor_seleccion
+        return minimo_gasto, mejor_seleccion
 
     distancia = opciones[idx + 1][0] - opciones[idx][0]
     if distancia > capacidad_tanque:
-        return aux_minimo_gasto, mejor_seleccion
+        return minimo_gasto, mejor_seleccion
 
-    aux_minimo_gasto, mejor_seleccion = backtracking_impl(
+    minimo_gasto, mejor_seleccion = backtracking(
         idx + 1,
         opciones,
         gasto,
         paradas_realizadas,
         capacidad_tanque - distancia,
         mejor_seleccion,
-        aux_minimo_gasto,
+        minimo_gasto,
     )
 
     paradas_realizadas.append(opciones[idx + 1])
@@ -88,22 +87,22 @@ def backtracking_impl(
     litros_por_cargar = CAPACIDAD_TANQUE - capacidad_tanque + distancia
     gasto_recarga = gasto + opciones[idx + 1][1] * (litros_por_cargar)
 
-    aux_minimo_gasto, mejor_seleccion = backtracking_impl(
+    minimo_gasto, mejor_seleccion = backtracking(
         idx + 1,
         opciones,
         gasto_recarga,
         paradas_realizadas,
         CAPACIDAD_TANQUE,
         mejor_seleccion,
-        aux_minimo_gasto,
+        minimo_gasto,
     )
 
     paradas_realizadas.pop()
 
-    return aux_minimo_gasto, mejor_seleccion
+    return minimo_gasto, mejor_seleccion
 
 
-def dinamica_impl(
+def dinamica_memo(
     idx: int,
     opciones: list[tuple[int, int]],
     gasto: float,
@@ -129,7 +128,7 @@ def dinamica_impl(
     if distancia > capacidad_tanque:
         return minimo_gasto, mejor_seleccion
 
-    minimo_gasto, mejor_seleccion = dinamica_impl(
+    minimo_gasto, mejor_seleccion = dinamica_memo(
         idx + 1,
         opciones,
         gasto,
@@ -145,7 +144,7 @@ def dinamica_impl(
     litros_por_cargar = CAPACIDAD_TANQUE - capacidad_tanque + distancia
     gasto_recarga = gasto + opciones[idx + 1][1] * (litros_por_cargar)
 
-    minimo_gasto, mejor_seleccion = dinamica_impl(
+    minimo_gasto, mejor_seleccion = dinamica_memo(
         idx + 1,
         opciones,
         gasto_recarga,
@@ -162,7 +161,7 @@ def dinamica_impl(
     return minimo_gasto, mejor_seleccion
 
 
-def dinamica_impl_table(opciones, capacidad_tanque):
+def dinamica_tabla(opciones: list[tuple[int, int]], capacidad_tanque: int):
     # Funcion de recurrencia
     # F(p,pa) {	
     # ([], inf) => Si p = 0 y distancia > capacidad_tanque	
@@ -189,10 +188,8 @@ def dinamica_impl_table(opciones, capacidad_tanque):
             if distancia <= capacidad_tanque and gasto <= matriz[p-1][pa][1]:
                 if opciones[p-1] != (0,0): 
                     aux = [matriz[p][p-1][0],opciones[pa]]
-                    
-                    
                 else:
-                    aux =opciones[pa]
+                    aux = opciones[pa]
 
                 matriz[p][pa] = (aux,gasto)
 
@@ -200,8 +197,8 @@ def dinamica_impl_table(opciones, capacidad_tanque):
                 if p > 0:  
                     matriz[p][pa] = matriz[p-1][pa]
     matriz[cantidad_paradas-1][cantidad_paradas-1][0].pop()
-    print(matriz)
-    return matriz[cantidad_paradas-1][cantidad_paradas-1][1] ,  matriz[cantidad_paradas-1][cantidad_paradas-1][0]   
+
+    return matriz[cantidad_paradas-1][cantidad_paradas-1][1], matriz[cantidad_paradas-1][cantidad_paradas-1][0]
 
 CAPACIDAD_TANQUE = 100
 
@@ -243,7 +240,7 @@ def main():
     #     (200, 0),
     # ]
 
-    total_cost, seleccion = greedy_impl(estaciones, [])
+    total_cost, seleccion = greedy(estaciones, [])
     tabla = [
         ["Numero de paradas", len(seleccion)],
         ["Costo total", total_cost],
@@ -251,14 +248,14 @@ def main():
     ]
     print(f"GREEDY:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
-    mejor_gasto, mejor_seleccion = backtracking_impl(
+    mejor_gasto, mejor_seleccion = backtracking(
         idx=0,
         opciones=estaciones,
         gasto=0,
         paradas_realizadas=[],
         capacidad_tanque=CAPACIDAD_TANQUE,
         mejor_seleccion=[],
-        aux_minimo_gasto=sys.maxsize,
+        minimo_gasto=sys.maxsize,
     )
 
     tabla = [
@@ -268,7 +265,7 @@ def main():
     ]
     print(f"BACKTRACKING:\n{tabulate(tabla,tablefmt="simple_grid")}")
 
-    mejor_gasto, mejor_seleccion = dinamica_impl(
+    mejor_gasto, mejor_seleccion = dinamica_memo(
         idx=0,
         opciones=estaciones,
         gasto=0,
@@ -284,7 +281,7 @@ def main():
         ["Paradas tomadas", mejor_seleccion],
     ]
     print(f"DINAMICA TOP-DOWN (Memoización):\n{tabulate(tabla,tablefmt="simple_grid")}")
-    mejor_gasto, mejor_seleccion = dinamica_impl_table(
+    mejor_gasto, mejor_seleccion = dinamica_tabla(
         opciones=estaciones,
         capacidad_tanque=CAPACIDAD_TANQUE,
     )
